@@ -1,0 +1,44 @@
+# ============================================================================
+# FrankenPHP Caddyfile Configuration - Simplified Production Version
+# ============================================================================
+
+{
+    # Global options
+    auto_https off
+    
+    # Enable FrankenPHP
+    frankenphp
+}
+
+# Simple HTTP server
+:80 {
+    # Document root
+    root * /app/public
+    
+    # Handle PHP files with FrankenPHP
+    php_server
+    
+    # Handle Laravel routing
+    try_files {path} /index.php
+    
+    # Security headers
+    header {
+        X-Frame-Options SAMEORIGIN
+        X-Content-Type-Options nosniff
+        X-XSS-Protection "1; mode=block"
+    }
+    
+    # Health check endpoint
+    handle /health {
+        respond "OK" 200
+    }
+    
+    # File server for static assets
+    file_server
+    
+    # Log everything
+    log {
+        output stdout
+        level INFO
+    }
+} 

@@ -1,0 +1,50 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\PricingPlan;
+
+class PricingPlanSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        $pricingPlans = [
+            [
+                'name' => 'الخطة الشهرية',
+                'duration_months' => 1,
+                'price' => 2000.00,
+                'description' => 'اشتراك شهري يتيح لك رفع وبيع الرشمات لمدة شهر واحد',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'الخطة نصف السنوية',
+                'duration_months' => 6,
+                'price' => 10000.00,
+                'description' => 'اشتراك لمدة 6 أشهر بخصم 17% - وفر 2000 دينار',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'الخطة السنوية',
+                'duration_months' => 12,
+                'price' => 18000.00,
+                'description' => 'اشتراك سنوي بخصم 25% - وفر 6000 دينار',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'الخطة الثلاثية',
+                'duration_months' => 3,
+                'price' => 5500.00,
+                'description' => 'اشتراك لمدة 3 أشهر بخصم 8% - وفر 500 دينار',
+                'is_active' => true,
+            ],
+        ];
+
+        foreach ($pricingPlans as $plan) {
+            PricingPlan::create($plan);
+        }
+    }
+}

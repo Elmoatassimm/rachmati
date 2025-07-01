@@ -1,0 +1,959 @@
+{
+	"info": {
+		"_postman_id": "rachmat-filtration-collection",
+		"name": "Rachmat API - Filtration & Language Tests",
+		"description": "Enhanced collection focusing on rachmat filtration cases and language switching (AR/FR)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication Setup",
+			"item": [
+				{
+					"name": "Login Client User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.access_token) {",
+									"        pm.environment.set('auth_token', response.data.access_token);",
+									"        pm.environment.set('user_id', response.data.user.id);",
+									"        console.log('JWT Token saved successfully');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{test_client_email}}\",\n    \"password\": \"{{test_client_password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Rachmat Filtration Tests",
+			"item": [
+				{
+					"name": "01 - All Rachmat (No Filters)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"]
+						}
+					}
+				},
+				{
+					"name": "02 - Filter by Category",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?category_id={{category_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "category_id",
+									"value": "{{category_id}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "03 - Filter by Subcategory",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?subcategory_id={{subcategory_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "subcategory_id",
+									"value": "{{subcategory_id}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "04 - Filter by Designer",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?designer_id={{designer_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "designer_id",
+									"value": "{{designer_id}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "05 - Filter by Price Range",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?min_price={{min_price}}&max_price={{max_price}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "min_price",
+									"value": "{{min_price}}"
+								},
+								{
+									"key": "max_price",
+									"value": "{{max_price}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "06 - Search by Name/Description",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?search={{search_term}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "search",
+									"value": "{{search_term}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "07 - Sort by Latest",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?sort_by=latest",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "sort_by",
+									"value": "latest"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "08 - Sort by Price (Low to High)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?sort_by=price_asc",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "sort_by",
+									"value": "price_asc"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "09 - Sort by Price (High to Low)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?sort_by=price_desc",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "sort_by",
+									"value": "price_desc"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "10 - Sort by Most Popular",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?sort_by=popular",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "sort_by",
+									"value": "popular"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "11 - Sort by Best Rated",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?sort_by=rating",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "sort_by",
+									"value": "rating"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "12 - Complex Filter Combination",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?category_id={{category_id}}&min_price={{min_price}}&max_price={{max_price}}&sort_by=popular&per_page={{page_size}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "category_id",
+									"value": "{{category_id}}"
+								},
+								{
+									"key": "min_price",
+									"value": "{{min_price}}"
+								},
+								{
+									"key": "max_price",
+									"value": "{{max_price}}"
+								},
+								{
+									"key": "sort_by",
+									"value": "popular"
+								},
+								{
+									"key": "per_page",
+									"value": "{{page_size}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "13 - Pagination Test (Page 1)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?page=1&per_page={{page_size}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "per_page",
+									"value": "{{page_size}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "14 - Pagination Test (Page 2)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?page=2&per_page={{page_size}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "page",
+									"value": "2"
+								},
+								{
+									"key": "per_page",
+									"value": "{{page_size}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "15 - Filter by Multiple Categories",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?category_id=1,2,3",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "category_id",
+									"value": "1,2,3"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Language Switching Tests",
+			"item": [
+				{
+					"name": "Categories in Arabic",
+					"event": [
+						{
+							"listen": "pre-request",
+							"script": {
+								"exec": [
+									"pm.environment.set('language', 'ar');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "ar"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/categories",
+							"host": ["{{base_url}}"],
+							"path": ["api", "categories"]
+						}
+					}
+				},
+				{
+					"name": "Categories in French",
+					"event": [
+						{
+							"listen": "pre-request",
+							"script": {
+								"exec": [
+									"pm.environment.set('language', 'fr');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "fr"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/categories",
+							"host": ["{{base_url}}"],
+							"path": ["api", "categories"]
+						}
+					}
+				},
+				{
+					"name": "Rachmat List in Arabic",
+					"event": [
+						{
+							"listen": "pre-request",
+							"script": {
+								"exec": [
+									"pm.environment.set('language', 'ar');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "ar"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?per_page=5",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "per_page",
+									"value": "5"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Rachmat List in French",
+					"event": [
+						{
+							"listen": "pre-request",
+							"script": {
+								"exec": [
+									"pm.environment.set('language', 'fr');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "fr"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?per_page=5",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "per_page",
+									"value": "5"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Login Error in Arabic",
+					"event": [
+						{
+							"listen": "pre-request",
+							"script": {
+								"exec": [
+									"pm.environment.set('language', 'ar');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "ar"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"invalid@example.com\",\n    \"password\": \"wrongpassword\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Login Error in French",
+					"event": [
+						{
+							"listen": "pre-request",
+							"script": {
+								"exec": [
+									"pm.environment.set('language', 'fr');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "fr"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"invalid@example.com\",\n    \"password\": \"wrongpassword\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Advanced Search Tests",
+			"item": [
+				{
+					"name": "Search Arabic Terms",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "ar"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?search=تطريز",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "search",
+									"value": "تطريز"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Search French Terms",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "fr"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?search=broderie",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "search",
+									"value": "broderie"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Search with Special Characters",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "ar"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?search=فستان%20زفاف",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "search",
+									"value": "فستان زفاف"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Empty Search Results",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "ar"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?search=nonexistentterm123456",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "search",
+									"value": "nonexistentterm123456"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Edge Cases & Error Handling",
+			"item": [
+				{
+					"name": "Invalid Category ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?category_id=99999",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "category_id",
+									"value": "99999"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Invalid Price Range",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?min_price=1000&max_price=100",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "min_price",
+									"value": "1000"
+								},
+								{
+									"key": "max_price",
+									"value": "100"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Large Page Number",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?page=999",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "page",
+									"value": "999"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Invalid Sort Parameter",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept-Language",
+								"value": "{{language}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/rachmat?sort_by=invalid_sort",
+							"host": ["{{base_url}}"],
+							"path": ["api", "rachmat"],
+							"query": [
+								{
+									"key": "sort_by",
+									"value": "invalid_sort"
+								}
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000"
+		},
+		{
+			"key": "language",
+			"value": "ar"
+		}
+	]
+} 
