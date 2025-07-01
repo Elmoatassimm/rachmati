@@ -1,17 +1,19 @@
 # ============================================================================
-# FrankenPHP Caddyfile Configuration - Simplified Production Version
+# FrankenPHP Caddyfile Configuration - Hostinger VPS Version
+# Hostname: srv889998.hstgr.cloud
 # ============================================================================
 
 {
     # Global options
-    auto_https off
+    email admin@srv889998.hstgr.cloud
+    auto_https on
     
     # Enable FrankenPHP
     frankenphp
 }
 
-# Simple HTTP server
-:80 {
+# HTTPS Configuration for srv889998.hstgr.cloud
+srv889998.hstgr.cloud {
     # Document root
     root * /app/public
     
@@ -26,6 +28,8 @@
         X-Frame-Options SAMEORIGIN
         X-Content-Type-Options nosniff
         X-XSS-Protection "1; mode=block"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        Referrer-Policy "strict-origin-when-cross-origin"
     }
     
     # Health check endpoint
@@ -33,12 +37,29 @@
         respond "OK" 200
     }
     
-    # File server for static assets
-    file_server
+    # API routes
+    handle /api/* {
+        php_server
+    }
     
-    # Log everything
+    # File server for static assets
+    file_server {
+        hide .htaccess
+    }
+    
+    # Logs
     log {
-        output stdout
+        output file /app/storage/logs/caddy.log
         level INFO
     }
+    
+    # Error handling
+    handle_errors {
+        respond "{err.status_code} {err.status_text}"
+    }
+}
+
+# HTTP redirect to HTTPS
+http://srv889998.hstgr.cloud {
+    redir https://srv889998.hstgr.cloud{uri} permanent
 } 
