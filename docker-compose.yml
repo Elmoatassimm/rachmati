@@ -1,215 +1,53 @@
 services:
-  # MySQL Database  
-  mysql:
-    image: 'mysql/mysql-server:8.0'
-    container_name: rachmat_mysql
-    restart: unless-stopped
-    ports:
-      - "${DB_PORT:-3306}:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: '${DB_PASSWORD:-user123}'
-      MYSQL_ROOT_HOST: '%'
-      MYSQL_DATABASE: '${DB_DATABASE:-rachmat}'
-      MYSQL_USER: '${DB_USERNAME:-rachmat_user}'
-      MYSQL_PASSWORD: '${DB_PASSWORD:-user123}'
-      MYSQL_ALLOW_EMPTY_PASSWORD: 1
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ./docker/mysql/conf.d:/etc/mysql/conf.d:ro
-      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
-    networks:
-      - rachmat_network
-    healthcheck:
-      test: ['CMD', 'mysqladmin', 'ping', '-p${DB_PASSWORD:-user123}']
-      retries: 3
-      timeout: 5s
+    app:
+        image: laravel-app
+        build:
+            context: .
+            dockerfile: Dockerfile
+            target: base
+        ports:
+            - '80:80'
+        volumes:
+            - '.:/app'
+        depends_on:
+            - mysql
+            - redis
+    mysql:
+        image: 'mysql/mysql-server:8.0'
+        ports:
+            - '3306:3306'
+        environment:
+            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_ROOT_HOST: '%'
+            MYSQL_DATABASE: '${DB_DATABASE}'
+            MYSQL_USER: '${DB_USERNAME}'
+            MYSQL_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_ALLOW_EMPTY_PASSWORD: 1
+        volumes:
+            - 'mysql:/var/lib/mysql'
+        healthcheck:
+            test: ['CMD', 'mysqladmin', 'ping', '-p${DB_PASSWORD}']
+            retries: 3
+            timeout: 5s
+    redis:
+        image: 'redis:alpine'
+        ports:
+            - '6379:6379'
+        volumes:
+            - 'redis:/data'
+        healthcheck:
+            test: ['CMD', 'redis-cli', 'ping']
+            retries: 3
+            timeout: 5s
+    artisan:
+        volumes:
+            - ".:/app"
+        image: laravel-app
+        depends_on:
+            - mysql
+            - redis
+        entrypoint: 'frankenphp php-cli artisan'
 
-  # Nginx Reverse Proxy with HTTPS
-  nginx:
-    image: nginx:1.25-alpine
-    container_name: rachmat_nginx
-    restart: unless-stopped
-    ports:
-      - "${NGINX_HTTP_PORT:-80}:80"
-      - "${NGINX_HTTPS_PORT:-443}:443"
-    volumes:
-      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./docker/nginx/proxy_params:/etc/nginx/proxy_params:ro
-      - ./docker/certs:/etc/ssl/certs:ro
-      - ./docker/certs:/etc/ssl/private:ro
-      - ./docker/logs/nginx:/var/log/nginx
-      - ./docker/www/test:/var/www/test:ro
-    depends_on:
-      - app
-    networks:
-      - rachmat_network
-    healthcheck:
-      test: ["CMD", "nginx", "-t"]
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-
-  # Laravel Application with FrankenPHP
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: production
-    container_name: rachmat_app
-    restart: unless-stopped
-    ports:
-      - "8443:443"  # Expose FrankenPHP HTTPS directly for testing
-    expose:
-      - "80"
-    # nginx handles HTTP, but we'll expose HTTPS directly for now
-    environment:
-      # Laravel Configuration
-      APP_NAME: ${APP_NAME:-Rachmat}
-      APP_ENV: ${APP_ENV:-production}
-      APP_KEY: base64:6cPvtK+GKxPWf7/D45X8ubfEHDf2fOP0EcAX6M1j25E=
-      APP_DEBUG: false
-      APP_URL: ${APP_URL:-https://localhost}
-      
-      # Database Configuration
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: "${DB_DATABASE:-rachmat}"
-      DB_USERNAME: "${DB_USERNAME:-rachmat_user}"
-      DB_PASSWORD: "${DB_PASSWORD:-user123}"
-      
-      # Database SSL Configuration
-      DB_SSLMODE: disable
-      MYSQL_ATTR_SSL_CA: ""
-      MYSQL_ATTR_SSL_CERT: ""
-      MYSQL_ATTR_SSL_KEY: ""
-      MYSQL_ATTR_SSL_CIPHER: ""
-      
-      # Additional database options
-      DB_OPTIONS: "--ssl-mode=DISABLED"
-      
-      # Cache Configuration
-      CACHE_STORE: file
-      SESSION_DRIVER: file
-      QUEUE_CONNECTION: sync
-      
-      # Redis Configuration
-      REDIS_HOST: redis
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      REDIS_PORT: 6379
-      
-      # Mail Configuration
-      MAIL_MAILER: ${MAIL_MAILER:-log}
-      MAIL_HOST: ${MAIL_HOST}
-      MAIL_PORT: ${MAIL_PORT:-587}
-      MAIL_USERNAME: ${MAIL_USERNAME}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
-      MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-tls}
-      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-hello@example.com}
-      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Rachmat}
-      
-      # JWT Configuration
-      JWT_SECRET: ${JWT_SECRET}
-      
-      # Telegram Configuration
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
-      TELEGRAM_WEBHOOK_URL: ${TELEGRAM_WEBHOOK_URL}
-      
-      # File Storage
-      FILESYSTEM_DISK: ${FILESYSTEM_DISK:-local}
-      
-      # HTTPS/TLS Configuration
-      FRANKENPHP_CONFIG_PATH: /etc/caddy/Caddyfile
-      DOMAIN: ${DOMAIN:-rachmat.local}
-      ENABLE_HTTPS: ${ENABLE_HTTPS:-true}
-      TLS_EMAIL: ${TLS_EMAIL:-admin@example.com}
-    volumes:
-      - ./docker/certs:/etc/certs:ro
-      - ./docker/frankenphp/Caddyfile:/etc/caddy/Caddyfile:ro
-      # - app_storage:/app/storage
-      # - app_cache:/app/bootstrap/cache
-      # - ./docker/logs:/app/storage/logs
-    depends_on:
-      - mysql
-      - redis
-    networks:
-      - rachmat_network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
-      timeout: 10s
-      retries: 5
-      start_period: 60s
-
-  # Redis for caching and sessions
-  redis:
-    image: redis:7.4-alpine
-    container_name: rachmat_redis
-    restart: unless-stopped
-    expose:
-      - "6379"
-    # Remove external port exposure since only internal access is needed
-    command: >
-      --save 60 1000
-      --appendonly yes
-      --appendfsync everysec
-      --maxmemory 256mb
-      --maxmemory-policy allkeys-lru
-      ${REDIS_PASSWORD:+--requirepass ${REDIS_PASSWORD}}
-    volumes:
-      - redis_data:/data
-    networks:
-      - rachmat_network
-    healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      timeout: 10s
-      retries: 5
-
-  # Development Tools (optional, for local development)
-  mailhog:
-    image: mailhog/mailhog:latest
-    container_name: rachmat_mailhog
-    restart: unless-stopped
-    ports:
-      - "${MAILHOG_PORT:-8025}:8025"
-      - "${MAILHOG_SMTP_PORT:-1025}:1025"
-    networks:
-      - rachmat_network
-    profiles:
-      - development
-
-  # Database Administration (optional, for development)
-  adminer:
-    image: adminer:latest
-    container_name: rachmat_adminer
-    restart: unless-stopped
-    ports:
-      - "${ADMINER_PORT:-8080}:8080"
-    environment:
-      ADMINER_DEFAULT_SERVER: mysql
-      ADMINER_DESIGN: pepa-linha
-    networks:
-      - rachmat_network
-    profiles:
-      - development
-
-# Named Volumes for Data Persistence
 volumes:
-  mysql_data:
-    driver: local
-    name: rachmat_mysql_data
-  redis_data:
-    driver: local
-    name: rachmat_redis_data
-  app_storage:
-    driver: local
-    name: rachmat_app_storage
-  app_cache:
-    driver: local
-    name: rachmat_app_cache
-
-# Networks
-networks:
-  rachmat_network:
-    driver: bridge
-    name: rachmat_network 
+    mysql:
+    redis:
