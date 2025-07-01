@@ -3685,3 +3685,112 @@
 2025/07/01 16:57:10 [warn] 3290#3290: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
 2025/07/01 16:57:10 [warn] 3290#3290: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
 2025/07/01 16:57:10 [warn] 3290#3290: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 16:57:40 [warn] 3296#3296: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 16:57:40 [warn] 3296#3296: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 16:57:40 [warn] 3296#3296: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 16:58:10 [warn] 3302#3302: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 16:58:10 [warn] 3302#3302: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 16:58:10 [warn] 3302#3302: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 16:58:40 [warn] 3308#3308: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 16:58:40 [warn] 3308#3308: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 16:58:40 [warn] 3308#3308: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 16:59:10 [warn] 3314#3314: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 16:59:10 [warn] 3314#3314: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 16:59:10 [warn] 3314#3314: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 16:59:40 [warn] 3320#3320: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 16:59:40 [warn] 3320#3320: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 16:59:40 [warn] 3320#3320: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:00:11 [warn] 3326#3326: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:00:11 [warn] 3326#3326: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:00:11 [warn] 3326#3326: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:00:41 [warn] 3332#3332: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:00:41 [warn] 3332#3332: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:00:41 [warn] 3332#3332: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:01:11 [warn] 3338#3338: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:01:11 [warn] 3338#3338: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:01:11 [warn] 3338#3338: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:01:41 [warn] 3344#3344: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:01:41 [warn] 3344#3344: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:01:41 [warn] 3344#3344: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:02:11 [warn] 3350#3350: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:02:11 [warn] 3350#3350: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:02:11 [warn] 3350#3350: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:02:41 [warn] 3356#3356: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:02:41 [warn] 3356#3356: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:02:41 [warn] 3356#3356: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:03:11 [warn] 3362#3362: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:03:11 [warn] 3362#3362: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:03:11 [warn] 3362#3362: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:03:41 [warn] 3368#3368: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:03:41 [warn] 3368#3368: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:03:41 [warn] 3368#3368: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:04:11 [warn] 3374#3374: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:04:11 [warn] 3374#3374: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:04:11 [warn] 3374#3374: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:04:41 [warn] 3379#3379: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:04:41 [warn] 3379#3379: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:04:41 [warn] 3379#3379: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:05:11 [warn] 3385#3385: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:05:11 [warn] 3385#3385: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:05:11 [warn] 3385#3385: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:05:41 [warn] 3390#3390: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:05:41 [warn] 3390#3390: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:05:41 [warn] 3390#3390: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:06:12 [warn] 3395#3395: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:06:12 [warn] 3395#3395: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:06:12 [warn] 3395#3395: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:06:42 [warn] 3401#3401: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:06:42 [warn] 3401#3401: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:06:42 [warn] 3401#3401: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:07:12 [warn] 3407#3407: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:07:12 [warn] 3407#3407: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:07:12 [warn] 3407#3407: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:07:20 [warn] 20#20: *31 an upstream response is buffered to a temporary file /var/cache/nginx/proxy_temp/1/00/0000000001 while reading upstream, client: 172.18.0.1, server: rachmat.local, request: "GET /logo.png HTTP/2.0", upstream: "http://172.18.0.4:80/logo.png", host: "rachmat.local", referrer: "https://rachmat.local/login"
+2025/07/01 17:07:42 [warn] 3413#3413: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:07:42 [warn] 3413#3413: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:07:42 [warn] 3413#3413: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:08:12 [warn] 3419#3419: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:08:12 [warn] 3419#3419: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:08:12 [warn] 3419#3419: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:08:42 [warn] 3425#3425: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:08:42 [warn] 3425#3425: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:08:42 [warn] 3425#3425: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:09:12 [warn] 3431#3431: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:09:12 [warn] 3431#3431: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:09:12 [warn] 3431#3431: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:09:42 [warn] 3437#3437: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:09:42 [warn] 3437#3437: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:09:42 [warn] 3437#3437: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:10:12 [warn] 3443#3443: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:10:12 [warn] 3443#3443: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:10:12 [warn] 3443#3443: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:10:43 [warn] 3449#3449: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:10:43 [warn] 3449#3449: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:10:43 [warn] 3449#3449: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:11:13 [warn] 3455#3455: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:11:13 [warn] 3455#3455: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:11:13 [warn] 3455#3455: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:11:43 [warn] 3461#3461: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:11:43 [warn] 3461#3461: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:11:43 [warn] 3461#3461: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:12:13 [warn] 3467#3467: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:12:13 [warn] 3467#3467: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:12:13 [warn] 3467#3467: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:12:43 [warn] 3479#3479: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:12:43 [warn] 3479#3479: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:12:43 [warn] 3479#3479: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:13:13 [warn] 3485#3485: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:13:13 [warn] 3485#3485: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:13:13 [warn] 3485#3485: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:13:19 [warn] 1#1: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:13:19 [warn] 1#1: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:13:19 [warn] 1#1: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:13:24 [warn] 28#28: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:13:24 [warn] 28#28: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:13:24 [warn] 28#28: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:13:54 [warn] 34#34: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:13:54 [warn] 34#34: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:13:54 [warn] 34#34: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"
+2025/07/01 17:14:24 [warn] 40#40: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:28
+2025/07/01 17:14:24 [warn] 40#40: the "listen ... http2" directive is deprecated, use the "http2" directive instead in /etc/nginx/conf.d/rachmat.conf:29
+2025/07/01 17:14:24 [warn] 40#40: "ssl_stapling" ignored, issuer certificate not found for certificate "/etc/ssl/certs/rachmat.local.crt"

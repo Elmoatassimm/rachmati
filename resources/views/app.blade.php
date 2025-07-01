@@ -53,7 +53,9 @@
         <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 
         @routes
-        @viteReactRefresh
+        @if(app()->environment('local', 'development'))
+            @viteReactRefresh
+        @endif
         @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         @inertiaHead
     </head>

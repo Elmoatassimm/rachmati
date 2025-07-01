@@ -132,7 +132,7 @@ services:
     networks:
       - rachmat_network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://rachmat.local/health"]
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
       timeout: 10s
       retries: 5
       start_period: 60s
