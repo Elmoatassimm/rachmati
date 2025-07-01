@@ -5,7 +5,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
 
 import { DesignerStatsCards } from '@/components/designer/DesignerStatsCards';
 import LazyImage from '@/components/ui/lazy-image';
@@ -164,26 +164,57 @@ export default function Dashboard({
             </div>
           </div>
 
-          {/* Subscription Alert */}
+          {/* Subscription Status Notification */}
           {designer.subscription_status !== 'active' && (
-            <Alert className="border-0 bg-gradient-to-r from-yellow-500/10 to-yellow-500/5 p-6 rounded-2xl ">
-              <div className="flex items-center gap-4 text-right">
-                <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <AlertTriangle className="w-6 h-6 text-white" />
-                </div>
-                <div className="flex-1 text-right">
-                  <AlertTitle className="text-xl font-bold text-right">
-                    {designer.subscription_status === 'pending' ? 'اشتراكك قيد المراجعة' : 'اشتراكك منتهي'}
-                  </AlertTitle>
-                  <AlertDescription className="text-base mt-1 text-right ">
-                    {designer.subscription_status === 'pending' 
-                      ? 'سيتم مراجعة اشتراكك قريباً من قبل الإدارة'
-                      : 'يرجى تجديد اشتراكك لمواصلة رفع الرشمات'
-                    }
-                  </AlertDescription>
-                </div>
-              </div>
-            </Alert>
+            <div className="relative overflow-hidden">
+              <div className={`absolute inset-0 bg-gradient-to-r ${
+                designer.subscription_status === 'pending' 
+                  ? 'from-yellow-500/20 via-yellow-500/10 to-orange-500/20' 
+                  : 'from-red-500/20 via-red-500/10 to-red-600/20'
+              } rounded-2xl`}></div>
+              
+              <Card className="relative border-0 shadow-xl rounded-2xl backdrop-blur-sm">
+                <CardContent className="p-8">
+                  <div className="flex items-start gap-6 flex-row-reverse">
+                    {/* Icon */}
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0 ${
+                      designer.subscription_status === 'pending'
+                        ? 'bg-gradient-to-br from-yellow-500 to-orange-500'
+                        : 'bg-gradient-to-br from-red-500 to-red-600'
+                    }`}>
+                      <AlertTriangle className="w-8 h-8 text-white" />
+                    </div>
+                    
+                    {/* Content */}
+                    <div className="flex-1 space-y-3">
+                      <h3 className={`text-2xl font-bold text-right leading-tight ${
+                        designer.subscription_status === 'pending' ? 'text-yellow-700' : 'text-red-700'
+                      }`}>
+                        {designer.subscription_status === 'pending' ? 'اشتراكك قيد المراجعة' : 'اشتراكك منتهي الصلاحية'}
+                      </h3>
+                      
+                      <p className="text-lg text-right leading-relaxed text-muted-foreground">
+                        {designer.subscription_status === 'pending' 
+                          ? 'سيتم مراجعة اشتراكك قريباً من قبل الإدارة وستتمكن من رفع الرشمات فور الموافقة عليه'
+                          : 'يرجى تجديد اشتراكك لمواصلة رفع الرشمات والاستفادة من جميع المزايا المتاحة'
+                        }
+                      </p>
+                      
+                      {/* Action Button */}
+                      {designer.subscription_status === 'expired' && (
+                        <div className="pt-2">
+                          <Link href="/designer/subscription-requests/create">
+                            <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3 text-lg font-bold rounded-xl">
+                              تجديد الاشتراك الآن
+                            </Button>
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {/* Stats Grid */}

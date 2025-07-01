@@ -14,16 +14,22 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
-            'name' => 'Admin',
-            'email' => 'admin@rachmat.com',
-            'password' => Hash::make('password123'),
-            'user_type' => 'admin',
-            'is_verified' => true,
-            'email_verified_at' => now(),
-        ]);
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@rachmat.com'],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make('password123'),
+                'user_type' => 'admin',
+                'is_verified' => true,
+                'email_verified_at' => now(),
+            ]
+        );
 
-        $this->command->info('Admin user created successfully!');
+        if ($admin->wasRecentlyCreated) {
+            $this->command->info('Admin user created successfully!');
+        } else {
+            $this->command->info('Admin user already exists!');
+        }
         $this->command->info('Email: admin@rachmat.com');
         $this->command->info('Password: password123');
     }

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use App\Models\Category;
 
 class CategorySeeder extends Seeder
@@ -13,8 +14,15 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        // Clear existing categories first
-        Category::truncate();
+        // Clear existing categories first (safe for foreign key constraints)
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            Category::truncate();
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        } else {
+            // For SQLite - use delete instead of truncate for foreign key safety
+            Category::query()->delete();
+        }
 
         $categories = [
             // Traditional Categories

@@ -164,17 +164,23 @@ class UserSeeder extends Seeder
             ],
         ];
 
-        // Create all users
+        // Create all users (safe from duplicate constraints)
         foreach ($adminUsers as $userData) {
-            User::create($userData);
+            $email = $userData['email'];
+            unset($userData['email']);
+            User::firstOrCreate(['email' => $email], $userData);
         }
 
         foreach ($designerUsers as $userData) {
-            User::create($userData);
+            $email = $userData['email'];
+            unset($userData['email']);
+            User::firstOrCreate(['email' => $email], $userData);
         }
 
         foreach ($clientUsers as $userData) {
-            User::create($userData);
+            $email = $userData['email'];
+            unset($userData['email']);
+            User::firstOrCreate(['email' => $email], $userData);
         }
 
         // Generate more client users for pagination testing
@@ -210,9 +216,8 @@ class UserSeeder extends Seeder
             $email = "client{$i}@test.com";
             $phone = '+21356' . str_pad(mt_rand(1000000, 9999999), 7, '0', STR_PAD_LEFT);
 
-            User::create([
+            User::firstOrCreate(['email' => $email], [
                 'name' => $name,
-                'email' => $email,
                 'phone' => $phone,
                 'password' => Hash::make('password'),
                 'user_type' => 'client',
