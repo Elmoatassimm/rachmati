@@ -56,9 +56,11 @@ services:
       target: production
     container_name: rachmat_app
     restart: unless-stopped
+    ports:
+      - "8443:443"  # Expose FrankenPHP HTTPS directly for testing
     expose:
       - "80"
-    # Remove external port exposure since Nginx will handle it
+    # nginx handles HTTP, but we'll expose HTTPS directly for now
     environment:
       # Laravel Configuration
       APP_NAME: ${APP_NAME:-Rachmat}
