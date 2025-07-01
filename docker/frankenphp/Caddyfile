@@ -12,8 +12,8 @@
     frankenphp
 }
 
-# HTTPS Configuration for srv889998.hstgr.cloud
-srv889998.hstgr.cloud {
+# Accept all requests (nginx handles domain routing)
+:80 {
     # Document root
     root * /app/public
     
@@ -59,7 +59,4 @@ srv889998.hstgr.cloud {
     }
 }
 
-# HTTP redirect to HTTPS
-http://srv889998.hstgr.cloud {
-    redir https://srv889998.hstgr.cloud{uri} permanent
-} 
+# nginx handles HTTP to HTTPS redirects 
