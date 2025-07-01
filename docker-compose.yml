@@ -1,16 +1,18 @@
 services:
-  # MySQL Database
+  # MySQL Database  
   mysql:
-    image: mariadb:10.11
+    image: 'mysql/mysql-server:8.0'
     container_name: rachmat_mysql
     restart: unless-stopped
     ports:
       - "${DB_PORT:-3306}:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: "root123"
-      MYSQL_DATABASE: "rachmat"
-      MYSQL_USER: "rachmat_user"
-      MYSQL_PASSWORD: "user123"
+      MYSQL_ROOT_PASSWORD: '${DB_PASSWORD:-user123}'
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_DATABASE: '${DB_DATABASE:-rachmat}'
+      MYSQL_USER: '${DB_USERNAME:-rachmat_user}'
+      MYSQL_PASSWORD: '${DB_PASSWORD:-user123}'
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
     volumes:
       - mysql_data:/var/lib/mysql
       - ./docker/mysql/conf.d:/etc/mysql/conf.d:ro
@@ -18,9 +20,9 @@ services:
     networks:
       - rachmat_network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123"]
-      timeout: 20s
-      retries: 10
+      test: ['CMD', 'mysqladmin', 'ping', '-p${DB_PASSWORD:-user123}']
+      retries: 3
+      timeout: 5s
 
   # Nginx Reverse Proxy with HTTPS
   nginx:
@@ -73,9 +75,9 @@ services:
       DB_CONNECTION: mysql
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_DATABASE: "rachmat"
-      DB_USERNAME: "rachmat_user"
-      DB_PASSWORD: "user123"
+      DB_DATABASE: "${DB_DATABASE:-rachmat}"
+      DB_USERNAME: "${DB_USERNAME:-rachmat_user}"
+      DB_PASSWORD: "${DB_PASSWORD:-user123}"
       
       # Database SSL Configuration
       DB_SSLMODE: disable
