@@ -29,7 +29,7 @@ class StoreController extends Controller
 
         return Inertia::render('Designer/Store/Index', [
             'designer' => $designer,
-            'socialMedia' => $designer->socialMedia()->orderBy('sort_order')->get(),
+            'socialMedia' => $designer->socialMedia()->orderBy('platform')->get(),
         ]);
     }
 
@@ -55,12 +55,16 @@ class StoreController extends Controller
         ]);
 
         // Calculate additional stats
-        $designer->rachmat_count = $designer->rachmat()->count();
-        $designer->orders_count = $designer->rachmat()->withCount('orders')->get()->sum('orders_count');
+        $rachmatCount = $designer->rachmat()->count();
+        $ordersCount = $designer->rachmat()->withCount('orders')->get()->sum('orders_count');
 
         return Inertia::render('Designer/Store/Show', [
             'designer' => $designer,
-            'socialMedia' => $designer->socialMedia()->where('is_active', true)->orderBy('sort_order')->get(),
+            'socialMedia' => $designer->socialMedia()->where('is_active', true)->orderBy('platform')->get(),
+            'stats' => [
+                'rachmat_count' => $rachmatCount,
+                'orders_count' => $ordersCount,
+            ],
         ]);
     }
 

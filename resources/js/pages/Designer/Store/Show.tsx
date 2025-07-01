@@ -35,9 +35,13 @@ import {
 interface Props {
   designer: Designer;
   socialMedia: DesignerSocialMedia[];
+  stats: {
+    rachmat_count: number;
+    orders_count: number;
+  };
 }
 
-export default function Show({ designer, socialMedia }: Props) {
+export default function Show({ designer, socialMedia, stats }: Props) {
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('ar-DZ', {
       year: 'numeric',
@@ -179,13 +183,13 @@ export default function Show({ designer, socialMedia }: Props) {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div className="text-center p-4 bg-gradient-to-br from-blue-500/10 to-blue-600/5 rounded-xl border border-blue-500/20">
                       <Package className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-foreground">{designer.rachmat_count || 0}</p>
+                      <p className="text-2xl font-bold text-foreground">{stats.rachmat_count || 0}</p>
                       <p className="text-sm text-muted-foreground">رشمة</p>
                     </div>
                     
                     <div className="text-center p-4 bg-gradient-to-br from-green-500/10 to-green-600/5 rounded-xl border border-green-500/20">
                       <ShoppingCart className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-foreground">{designer.orders_count || 0}</p>
+                      <p className="text-2xl font-bold text-foreground">{stats.orders_count || 0}</p>
                       <p className="text-sm text-muted-foreground">طلب</p>
                     </div>
                     
