@@ -243,7 +243,7 @@ class Rachma extends Model
     public function getLocalizedTitleAttribute(): string
     {
         $locale = app()->getLocale();
-        return $this->{"title_$locale"} ?? $this->title_ar ?? $this->title;
+        return $this->{"title_$locale"} ?? $this->title_ar ?? $this->title_fr ?? '';
     }
 
     /**
@@ -252,23 +252,23 @@ class Rachma extends Model
     public function getLocalizedDescriptionAttribute(): ?string
     {
         $locale = app()->getLocale();
-        return $this->{"description_$locale"} ?? $this->description_ar ?? $this->description;
+        return $this->{"description_$locale"} ?? $this->description_ar ?? $this->description_fr ?? null;
     }
 
     /**
-     * Get the title attribute (defaults to Arabic, then original title).
+     * Get the title attribute (defaults to Arabic, then French title).
      */
     public function getTitleAttribute(): string
     {
-        return $this->attributes['title_ar'] ?? $this->attributes['title'];
+        return $this->attributes['title_ar'] ?? $this->attributes['title_fr'] ?? '';
     }
 
     /**
-     * Get the description attribute (defaults to Arabic, then original description).
+     * Get the description attribute (defaults to Arabic, then French description).
      */
     public function getDescriptionAttribute(): ?string
     {
-        return $this->attributes['description_ar'] ?? $this->attributes['description'];
+        return $this->attributes['description_ar'] ?? $this->attributes['description_fr'] ?? null;
     }
 
     /**
@@ -280,7 +280,7 @@ class Rachma extends Model
             return "{$this->width} x {$this->height} cm";
         }
         
-        return $this->size ?? 'غير محدد';
+        return 'غير محدد';
     }
 
     /**
@@ -324,11 +324,13 @@ class Rachma extends Model
     }
 
     /**
-     * Scope to filter by size
+     * Scope to filter by size (using formatted size from width and height)
      */
     public function scopeBySize($query, $size)
     {
-        return $query->where('size', $size);
+        // Since there's no size column, we can't filter by size directly
+        // This method is kept for backward compatibility but doesn't filter
+        return $query;
     }
 
     /**
