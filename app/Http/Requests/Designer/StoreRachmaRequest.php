@@ -33,12 +33,12 @@ class StoreRachmaRequest extends FormRequest
             'categories.*' => 'exists:categories,id',
             
             // Only width and height, no size field
-            'width' => 'required|numeric|min:0|max:9999.99',
-            'height' => 'required|numeric|min:0|max:9999.99',
+            'width' => 'required|numeric|min:0|max:999999999.99',
+            'height' => 'required|numeric|min:0|max:99999999.99',
             
-            'gharazat' => 'required|integer|min:1|max:1000000',
-            'color_numbers' => 'required|integer|min:1|max:100',
-            'price' => 'required|numeric|min:0|max:999999.99',
+            'gharazat' => 'required|integer|min:1|max:10000000000',
+            'color_numbers' => 'required|integer|min:1|max:1000000000',
+            'price' => 'required|numeric|min:0|max:999999999.99',
             
             // File validation - using new files structure
             'files' => 'required|array|min:1|max:20',
@@ -46,7 +46,6 @@ class StoreRachmaRequest extends FormRequest
                 'required',
                 'file',
                 'max:10240', // 10MB max
-                'mimes:zip,rar,dst,exp,jef,pes,vp3,xxx,hus,vip,sew,csd,pdf'
             ],
             
             // Preview images validation
