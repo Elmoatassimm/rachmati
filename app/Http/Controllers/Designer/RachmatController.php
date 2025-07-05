@@ -239,7 +239,7 @@ class RachmatController extends Controller
             'total_orders' => $rachma->orders()->count(),
             'completed_orders' => $rachma->orders()->where('status', 'completed')->count(),
             'total_earnings' => $rachma->orders()->where('status', 'completed')->sum('amount'),
-            'average_rating' => $rachma->orders()->where('status', 'completed')->avg('rating') ?? 0,
+            'average_rating' => $rachma->average_rating ?? 0,
         ];
 
         return Inertia::render('Designer/Rachmat/Show', [
