@@ -85,6 +85,12 @@ export default function Welcome() {
         }
 
         return (
+            <>
+            <Head title="الرئيسية">
+            <link rel="preconnect" href="https://fonts.bunny.net" />
+            <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        </Head>
             <div className="grid gap-6 md:gap-8 lg:grid-cols-3 max-w-5xl mx-auto">
                 {pricingPlans.map((plan, index) => (
                     <div 
@@ -154,6 +160,7 @@ export default function Welcome() {
                     </div>
                 ))}
             </div>
+            </>
         );
     };
 

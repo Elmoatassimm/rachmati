@@ -40,12 +40,14 @@ class StoreRachmaRequest extends FormRequest
             'color_numbers' => 'required|integer|min:1|max:1000000000',
             'price' => 'required|numeric|min:0|max:999999999.99',
             
-            // File validation - using new files structure
+            // File validation - using new files structure with security restrictions
             'files' => 'required|array|min:1|max:20',
             'files.*' => [
                 'required',
                 'file',
                 'max:10240', // 10MB max
+                
+                'not_in:php,php3,php4,php5,php7,phtml,asp,aspx,jsp,exe,com,bat,cmd,scr,pif,reg,js,vbs,wsf,hta,jar,msi,msu,deb,rpm,app,apk,dmg,pkg,iso,bin,sh,bash,ps1,powershell,py,rb,pl,perl,lua,tcl,tk,swf,fla,air,apk,aab,xapk,ipa,appx,msix,appxbundle,msixbundle,exe,msi,msu,deb,rpm,app,dmg,pkg,iso,bin,sh,bash,ps1,powershell,py,rb,pl,perl,lua,tcl,tk,swf,fla,air,apk,aab,xapk,ipa,appx,msix,appxbundle,msixbundle',
             ],
             
             // Preview images validation
@@ -126,6 +128,7 @@ class StoreRachmaRequest extends FormRequest
             'files.*.file' => 'يجب أن يكون ملف صالح',
             'files.*.max' => 'حجم الملف يجب ألا يتجاوز 10 ميجابايت',
             'files.*.mimes' => 'نوع الملف غير مدعوم. الأنواع المدعومة: ZIP, RAR, DST, EXP, JEF, PES, VP3, XXX, HUS, VIP, SEW, CSD, PDF',
+            'files.*.not_in' => 'نوع الملف غير مسموح به لأسباب أمنية. يرجى رفع ملفات الرشمة المدعومة فقط',
             
             // Preview images validation
             'preview_images.array' => 'صور المعاينة يجب أن تكون قائمة',

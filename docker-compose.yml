@@ -1,19 +1,45 @@
 services:
+    caddy:
+        image: caddy:2-alpine
+        restart: always
+        ports:
+            - "80:80"
+            - "443:443"
+            - "443:443/udp"
+        volumes:
+            - ./Caddyfile:/etc/caddy/Caddyfile:ro
+            - caddy_data:/data
+            - caddy_config:/config
+            - .:/app:ro
+        environment:
+            - CADDY_HOST=srv889998.hstgr.cloud
+        depends_on:
+            - app
+        networks:
+            - web
     app:
         image: laravel-app
         build:
             context: .
             dockerfile: Dockerfile
             target: base
-        ports:
-            - '80:80'
+        restart: always
+        expose:
+            - '80'
         volumes:
             - '.:/app'
+            - './storage:/app/storage'
+        environment:
+            - APP_URL=https://srv889998.hstgr.cloud
         depends_on:
             - mysql
             - redis
+        networks:
+            - web
+            - internal
     mysql:
         image: 'mysql/mysql-server:8.0'
+        restart: always
         ports:
             - '3306:3306'
         environment:
@@ -29,8 +55,11 @@ services:
             test: ['CMD', 'mysqladmin', 'ping', '-p${DB_PASSWORD}']
             retries: 3
             timeout: 5s
+        networks:
+            - internal
     redis:
         image: 'redis:alpine'
+        restart: always
         ports:
             - '6379:6379'
         volumes:
@@ -39,6 +68,8 @@ services:
             test: ['CMD', 'redis-cli', 'ping']
             retries: 3
             timeout: 5s
+        networks:
+            - internal
     artisan:
         volumes:
             - ".:/app"
@@ -47,7 +78,21 @@ services:
             - mysql
             - redis
         entrypoint: 'frankenphp php-cli artisan'
+        networks:
+            - internal
+
+networks:
+    web:
+        driver: bridge
+    internal:
+        driver: bridge
 
 volumes:
     mysql:
+        driver: local
     redis:
+        driver: local
+    caddy_data:
+        driver: local
+    caddy_config:
+        driver: local
