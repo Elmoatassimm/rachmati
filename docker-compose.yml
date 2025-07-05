@@ -13,8 +13,8 @@ services:
             - .:/app:ro
         environment:
             - CADDY_HOST=srv889998.hstgr.cloud
-        depends_on:
-            - app
+        cap_add:
+            - NET_ADMIN
         networks:
             - web
     app:
@@ -31,6 +31,8 @@ services:
             - './storage:/app/storage'
         environment:
             - APP_URL=https://srv889998.hstgr.cloud
+            - ASSET_URL=https://srv889998.hstgr.cloud
+            - VITE_APP_URL=https://srv889998.hstgr.cloud
         depends_on:
             - mysql
             - redis
