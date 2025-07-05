@@ -91,7 +91,7 @@ export default function Show({ rachma, stats }: Props) {
                 </div>
                 <div className="flex items-center gap-1">
                   <Star className="h-4 w-4 text-yellow-500" />
-                  {stats.average_rating ? stats.average_rating.toFixed(1) : '0.0'}
+                  {stats.average_rating && typeof stats.average_rating === 'number' ? stats.average_rating.toFixed(1) : '0.0'}
                 </div>
                 <div className="flex items-center gap-1">
                   <DollarSign className="h-4 w-4 text-green-600" />
