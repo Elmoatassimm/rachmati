@@ -129,9 +129,9 @@ export default function Show({ rachma, fileInfo, filesInfo, previewImagesInfo }:
       
       <ErrorBoundary>
         <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
-          <div className="p-2 md:p-4 space-y-4">
+          <div className="p-2 md:p-4 space-y-4 relative">
             {/* Enhanced Header */}
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 relative">
               <div className="space-y-3">
                 <ModernPageHeader
                   title={rachma.title_ar || rachma.title}
@@ -155,13 +155,6 @@ export default function Show({ rachma, fileInfo, filesInfo, previewImagesInfo }:
               </div>
               
               <div className="flex items-center gap-3">
-                <Link href={route('admin.rachmat.edit', rachma.id)}>
-                  <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
-                    <Edit className="ml-2 h-4 w-4" />
-                    تعديل الرشمة
-                  </Button>
-                </Link>
-                {/* Show download button if there are any existing files (new multi-file system) or legacy file exists */}
                 {((filesInfo.length > 0 && filesInfo.some(file => file.exists)) || fileInfo?.exists) && (
                   <a href={route('admin.rachmat.download-file', rachma.id)}>
                     <Button variant="outline">
@@ -179,9 +172,9 @@ export default function Show({ rachma, fileInfo, filesInfo, previewImagesInfo }:
               </div>
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 relative">
               {/* Main Content */}
-              <div className="xl:col-span-2 space-y-4">
+              <div className="xl:col-span-2 space-y-4 relative">
                 {/* Enhanced Preview Images */}
                 <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-card via-card/95 to-muted/20 shadow-xl rounded-2xl backdrop-blur-sm">
                   <CardHeader className="text-right">

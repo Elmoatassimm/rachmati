@@ -209,12 +209,6 @@ export default function Index({ rachmat, designers, categories, stats, filters }
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href={route('admin.rachmat.edit', rachma.id)}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    تعديل
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
                   <a href={route('admin.rachmat.download-file', rachma.id)}>
                     <Download className="mr-2 h-4 w-4" />
                     تحميل الملف
@@ -248,7 +242,7 @@ export default function Index({ rachmat, designers, categories, stats, filters }
 
       <ErrorBoundary>
         <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-          <div className="p-8 space-y-10">
+          <div className="p-8 space-y-10 relative">
             {/* Modern Header */}
             <AdminPageHeader
               title="إدارة الرشمات"
@@ -257,7 +251,7 @@ export default function Index({ rachmat, designers, categories, stats, filters }
 
             {/* Flash Messages */}
             {flash?.success && (
-              <div className="p-4 rounded-lg bg-green-50 border border-green-200">
+              <div className="p-4 rounded-lg bg-green-50 border border-green-200 relative">
                 <div className="flex">
                   <CheckCircle className="w-5 h-5 text-green-400" />
                   <div className="mr-3">
@@ -270,7 +264,7 @@ export default function Index({ rachmat, designers, categories, stats, filters }
             )}
 
             {flash?.error && (
-              <div className="p-4 rounded-lg bg-red-50 border border-red-200">
+              <div className="p-4 rounded-lg bg-red-50 border border-red-200 relative">
                 <div className="flex">
                   <AlertCircle className="w-5 h-5 text-red-400" />
                   <div className="mr-3">
@@ -283,7 +277,7 @@ export default function Index({ rachmat, designers, categories, stats, filters }
             )}
 
             {/* Statistics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
               <ModernStatsCard
                 title="إجمالي الرشمات"
                 value={stats.total_rachmat}
