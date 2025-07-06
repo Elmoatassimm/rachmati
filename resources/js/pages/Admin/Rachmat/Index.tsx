@@ -15,7 +15,6 @@ import { Rachma, Designer, Category, Paginated, PaginationLink, PageProps } from
 import {
   Package,
   Eye,
-  Edit,
   Download,
   Trash2,
   Filter,
@@ -43,8 +42,13 @@ interface Stats {
   total_revenue: number;
 }
 
+interface ExtendedRachma extends Rachma {
+  categories?: Category[];
+  designer?: Designer;
+}
+
 interface Props extends PageProps {
-  rachmat: Paginated<Rachma>;
+  rachmat: Paginated<ExtendedRachma>;
   designers: Designer[];
   categories: Category[];
   stats: Stats;
@@ -93,7 +97,7 @@ export default function Index({ rachmat, designers, categories, stats, filters }
     router.get(route('admin.rachmat.index'));
   };
 
-  const handleDelete = (rachma: Rachma) => {
+  const handleDelete = (rachma: ExtendedRachma) => {
     const confirmMessage = `هل أنت متأكد من حذف الرشمة "${rachma.title_ar}"؟\n\nسيتم حذف جميع الملفات والبيانات المرتبطة بها نهائياً.\nهذا الإجراء لا يمكن التراجع عنه.`;
     
     if (confirm(confirmMessage)) {
@@ -117,7 +121,7 @@ export default function Index({ rachmat, designers, categories, stats, filters }
   };
 
   // Define columns for the rachmat data table
-  const columns: ColumnDef<Rachma>[] = [
+  const columns: ColumnDef<ExtendedRachma>[] = [
     {
       accessorKey: "title",
       header: ({ column }) => (
@@ -129,7 +133,7 @@ export default function Index({ rachmat, designers, categories, stats, filters }
           <div className="text-right">
             <div className="font-medium text-sm lg:text-base">{rachma.title_ar}</div>
             <div className="text-xs lg:text-sm text-muted-foreground">
-              {rachma.categories?.map(cat => cat.name_ar).join(', ') || 'بدون تصنيف'}
+              {rachma.categories?.map((cat: Category) => cat.name_ar || cat.name).join(', ') || 'بدون تصنيف'}
             </div>
           </div>
         );
@@ -141,7 +145,7 @@ export default function Index({ rachmat, designers, categories, stats, filters }
         <DataTableColumnHeader column={column} title="المصمم" />
       ),
       cell: ({ row }) => {
-        const designer = row.original.designer;
+        const designer = row.original.designer as Designer;
         return (
           <div className="text-right">
             <div className="font-medium text-sm">{designer?.store_name}</div>
@@ -222,7 +226,6 @@ export default function Index({ rachmat, designers, categories, stats, filters }
                   <Trash2 className="mr-2 h-4 w-4" />
                   حذف
                 </DropdownMenuItem>
-
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

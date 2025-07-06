@@ -1,31 +1,30 @@
 import React, { useState } from 'react';
-import { Head, Link, useRouter } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 import AppLayout from '@/layouts/app-layout';
 import { ModernPageHeader } from '@/components/ui/modern-page-header';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import LazyImage from '@/components/ui/lazy-image';
-import { Rachma, Order } from '@/types';
+import { Rachma, Order, Category } from '@/types';
 import {
   ArrowLeft,
-  Edit,
   Package,
-  Download,
-  Calendar,
   DollarSign,
-  ShoppingCart,
+  Calendar,
+  Download,
+  FileImage,
+  Trash2,
   Star,
-  Ruler,
-  Palette,
+  ShoppingCart,
+  Layers,
   FileText,
   Image as ImageIcon,
   File,
-  BarChart3,
-  Trash2
+  BarChart3
 } from 'lucide-react';
 
 interface Stats {
@@ -35,16 +34,19 @@ interface Stats {
   average_rating: number;
 }
 
+interface ExtendedRachma extends Rachma {
+  categories?: Category[];
+  title?: string;
+  orders?: Order[];
+}
+
 interface Props {
-  rachma: Rachma & {
-    orders?: Order[];
-  };
+  rachma: ExtendedRachma;
   stats: Stats;
 }
 
 export default function Show({ rachma, stats }: Props) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const router = useRouter();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('ar-DZ', {
@@ -137,17 +139,17 @@ export default function Show({ rachma, stats }: Props) {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {rachma.preview_image_urls && rachma.preview_image_urls.length > 0 ? (
+                  {rachma.preview_images && rachma.preview_images.length > 0 ? (
                     <div className="space-y-3">
                       {/* Main Image */}
                       <div className="relative group">
                         <div 
                           className="h-128 overflow-hidden rounded-2xl bg-muted border border-border/50 shadow-lg cursor-pointer"
-                          onClick={() => rachma.preview_image_urls && window.open(rachma.preview_image_urls[selectedImageIndex], '_blank')}
+                          onClick={() => rachma.preview_images[selectedImageIndex] && window.open(rachma.preview_images[selectedImageIndex], '_blank')}
                         >
                           <LazyImage
-                            src={rachma.preview_image_urls[selectedImageIndex]}
-                            alt={rachma.title_ar || 'رشمة'}
+                            src={rachma.preview_images[selectedImageIndex] || ''}
+                            alt={rachma.title_ar}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                             aspectRatio="4:3"
                             priority={true}
@@ -156,42 +158,39 @@ export default function Show({ rachma, stats }: Props) {
                         </div>
                       
                         <div className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-sm rounded-lg px-3 py-1 text-sm text-foreground">
-                          {selectedImageIndex + 1} / {rachma.preview_image_urls.length}
+                          {selectedImageIndex + 1} / {rachma.preview_images.length}
                         </div>
                       </div>
                       
                       {/* Thumbnail Gallery */}
-                      {rachma.preview_image_urls.length > 1 && (
-                        <div className="grid grid-cols-6 gap-2">
-                          {rachma.preview_image_urls.map((imageUrl, index) => (
-                            <button
-                              key={index}
-                              onClick={() => setSelectedImageIndex(index)}
-                              className={`h-12 w-full overflow-hidden rounded-lg border-2 transition-all duration-300 hover:shadow-lg ${
-                                selectedImageIndex === index 
-                                  ? 'border-primary shadow-lg ring-2 ring-primary/20' 
-                                  : 'border-border hover:border-primary/50'
-                              }`}
-                            >
-                              <LazyImage
-                                src={imageUrl}
-                                alt={`${rachma.title_ar} - صورة ${index + 1}`}
-                                className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
-                                aspectRatio="4:3"
-                                priority={false}
-                                showSkeleton={true}
-                              />
-                            </button>
-                          ))}
-                        </div>
-                      )}
+                      <div className="grid grid-cols-4 gap-3">
+                        {rachma.preview_images.map((imageUrl: string, index: number) => (
+                          <button
+                            key={index}
+                            onClick={() => setSelectedImageIndex(index)}
+                            className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all duration-300 ${
+                              selectedImageIndex === index ? 'border-primary ring-2 ring-primary/20' : 'border-border/50 hover:border-border'
+                            }`}
+                          >
+                            <LazyImage
+                              src={imageUrl}
+                              alt={`Preview ${index + 1}`}
+                              className="w-full h-full object-cover"
+                              aspectRatio="1:1"
+                              priority={false}
+                              showSkeleton={true}
+                            />
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   ) : (
-                    <div className="h-48 bg-gradient-to-br from-muted via-muted/80 to-muted/60 rounded-xl flex items-center justify-center border border-border/50">
-                      <div className="text-center">
-                        <Package className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
-                        <p className="text-sm text-muted-foreground">لا توجد صور معاينة</p>
+                    <div className="text-center py-12">
+                      <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                        <ImageIcon className="w-10 h-10 text-muted-foreground" />
                       </div>
+                      <h3 className="text-lg font-semibold mb-2">لا توجد صور معاينة</h3>
+                      <p className="text-muted-foreground">لم يتم رفع أي صور معاينة لهذه الرشمة</p>
                     </div>
                   )}
                 </CardContent>
