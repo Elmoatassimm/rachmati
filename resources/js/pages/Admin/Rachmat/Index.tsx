@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import React, { useState, useEffect } from 'react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTable, DataTableColumnHeader } from '@/components/ui/data-table';
+import { DataTableColumnHeader } from '@/components/ui/data-table';
+import { DataTablePagination } from '@/components/ui/data-table-pagination';
+import { usePagination } from '@/hooks/use-pagination';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { ModernStatsCard } from '@/components/ui/modern-stats-card';
 import ErrorBoundary from '@/components/error-boundary';
-import { Rachma, Designer, Category, Paginated, PaginationLink, PageProps } from '@/types';
+import { Rachma, Designer, Category, PageProps } from '@/types';
 import {
   Package,
   Eye,
@@ -48,7 +50,25 @@ interface ExtendedRachma extends Rachma {
 }
 
 interface Props extends PageProps {
-  rachmat: Paginated<ExtendedRachma>;
+  rachmat: {
+    data: ExtendedRachma[];
+    current_page: number;
+    first_page_url: string;
+    from: number;
+    last_page: number;
+    last_page_url: string;
+    links: Array<{
+      url: string | null;
+      label: string;
+      active: boolean;
+    }>;
+    next_page_url: string | null;
+    path: string;
+    per_page: number;
+    prev_page_url: string | null;
+    to: number;
+    total: number;
+  };
   designers: Designer[];
   categories: Category[];
   stats: Stats;
@@ -66,8 +86,9 @@ interface Props extends PageProps {
 export default function Index({ rachmat, designers, categories, stats, filters }: Props) {
   const { flash } = usePage<PageProps>().props;
   const [showFilters, setShowFilters] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
-  const { data, setData, get, processing } = useForm({
+  const { data, setData, processing } = useForm({
     designer_id: filters.designer_id || '',
     category_id: filters.category_id || '',
     date_from: filters.date_from || '',
@@ -77,10 +98,25 @@ export default function Index({ rachmat, designers, categories, stats, filters }
     search: filters.search || '',
   });
 
+  const { isLoading: isPaginationLoading, handlePageChange } = usePagination('/admin/rachmat', {
+    onSuccess: () => setIsLoading(false),
+    onError: () => setIsLoading(false)
+  });
+
+  // Update loading state when pagination is loading
+  React.useEffect(() => {
+    setIsLoading(isPaginationLoading);
+  }, [isPaginationLoading]);
+
   const handleFilter = () => {
-    get(route('admin.rachmat.index'), {
-      preserveState: true,
-      preserveScroll: true,
+    handlePageChange(1, {
+      designer_id: data.designer_id,
+      category_id: data.category_id,
+      date_from: data.date_from,
+      date_to: data.date_to,
+      min_price: data.min_price,
+      max_price: data.max_price,
+      search: data.search,
     });
   };
 
@@ -94,7 +130,7 @@ export default function Index({ rachmat, designers, categories, stats, filters }
       max_price: '',
       search: '',
     });
-    router.get(route('admin.rachmat.index'));
+    handlePageChange(1);
   };
 
   const handleDelete = (rachma: ExtendedRachma) => {
@@ -440,17 +476,28 @@ export default function Index({ rachmat, designers, categories, stats, filters }
                   <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/70 rounded-2xl flex items-center justify-center shadow-lg">
                     <Package className="w-6 h-6 text-primary-foreground" />
                   </div>
-                  الرشمات ({rachmat.meta?.total || 0})
+                  الرشمات ({rachmat.total || 0})
                 </CardTitle>
               </CardHeader>
               <CardContent className="relative">
                 {rachmat.data && rachmat.data.length > 0 ? (
-                  <div className="rounded-md border">
-                    <DataTable
-                      columns={columns}
-                      data={rachmat.data}
-                    />
-                  </div>
+                  <DataTablePagination
+                    columns={columns}
+                    paginatedData={rachmat}
+                    searchPlaceholder="البحث في الرشمات..."
+                    searchColumn="title"
+                    isLoading={isLoading}
+                    onPageChange={(page) => handlePageChange(page, {
+                      designer_id: data.designer_id || undefined,
+                      category_id: data.category_id || undefined,
+                      date_from: data.date_from || undefined,
+                      date_to: data.date_to || undefined,
+                      min_price: data.min_price || undefined,
+                      max_price: data.max_price || undefined,
+                      search: data.search || undefined,
+                    })}
+
+                  />
                 ) : (
                   <div className="text-center py-12">
                     <div className="w-20 h-20 bg-gradient-to-br from-muted to-muted/70 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -462,29 +509,6 @@ export default function Index({ rachmat, designers, categories, stats, filters }
                 )}
               </CardContent>
             </Card>
-
-          {/* Pagination */}
-          {rachmat.meta && rachmat.meta.last_page > 1 && (
-            <div className="flex justify-center">
-              <div className="flex items-center space-x-2">
-                {rachmat.links?.map((link: PaginationLink, index: number) => (
-                  <Button
-                    key={index}
-                    variant={link.active ? 'default' : 'outline'}
-                    size="sm"
-                    disabled={!link.url}
-                    asChild={!!link.url}
-                  >
-                    {link.url ? (
-                      <Link href={link.url} dangerouslySetInnerHTML={{ __html: link.label }} />
-                    ) : (
-                      <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                    )}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
           </div>
         </div>
       </ErrorBoundary>

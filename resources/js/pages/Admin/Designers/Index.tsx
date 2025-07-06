@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
 import AppLayout from '@/layouts/app-layout';
@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DataTable, DataTableColumnHeader, DataTableRowActions } from '@/components/ui/data-table';
+import CustomPagination from '@/components/ui/custom-pagination';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { ModernStatsCard } from '@/components/ui/modern-stats-card';
 import { Designer, PageProps } from '@/types';
@@ -34,8 +35,22 @@ interface Stats {
 interface Props extends PageProps {
   designers?: {
     data: Designer[];
-    links: Record<string, unknown>[];
-    meta: Record<string, unknown>;
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number;
+    to: number;
+    links: Array<{
+      url: string | null;
+      label: string;
+      active: boolean;
+    }>;
+    first_page_url: string;
+    last_page_url: string;
+    next_page_url: string | null;
+    prev_page_url: string | null;
+    path: string;
   };
   filters?: {
     search?: string;
@@ -52,6 +67,16 @@ export default function Index({ designers, filters = {}, stats }: Props) {
   // Provide default values if undefined
   const safeStats = stats || { total: 0, active: 0, pending: 0, totalRachmat: 0, totalOrders: 0 };
   const safeDesigners = designers?.data || [];
+
+  // Use the correct pagination data from designers object
+  const paginationData = {
+    current_page: designers?.current_page || 1,
+    last_page: designers?.last_page || 1,
+    total: designers?.total || 0,
+    per_page: designers?.per_page || 15,
+    from: designers?.from || 0,
+    to: designers?.to || 0
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -429,12 +454,24 @@ export default function Index({ designers, filters = {}, stats }: Props) {
           </Card>
 
           {/* Pagination */}
-          {designers && designers.meta && typeof designers.meta === 'object' && 'last_page' in designers.meta && (designers.meta.last_page as number) > 1 && (
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">
-                عرض {designers.data.length} من {'total' in designers.meta ? (designers.meta.total as number) : 0} نتيجة
-              </div>
-            </div>
+          {paginationData.last_page > 1 && (
+            <CustomPagination
+              currentPage={paginationData.current_page}
+              totalPages={paginationData.last_page}
+              totalItems={paginationData.total}
+              itemsPerPage={paginationData.per_page}
+              onPageChange={(page) => {
+                router.get('/admin/designers', {
+                  page,
+                  search: searchTerm || undefined,
+                  status: statusFilter !== 'all' ? statusFilter : undefined,
+                }, {
+                  preserveState: true,
+                  preserveScroll: true,
+                });
+              }}
+
+            />
           )}
         </div>
       </div>

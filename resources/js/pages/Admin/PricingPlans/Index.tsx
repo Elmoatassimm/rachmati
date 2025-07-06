@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Head, router, Link, usePage } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 import { ColumnDef } from '@tanstack/react-table';
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable, DataTableColumnHeader, DataTableRowActions } from '@/components/ui/data-table';
+import CustomPagination from '@/components/ui/custom-pagination';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
@@ -36,7 +37,12 @@ interface Props extends PageProps {
   pricingPlans?: {
     data: PricingPlan[];
     links: Record<string, unknown>[];
-    meta: Record<string, unknown>;
+    meta: {
+      current_page: number;
+      last_page: number;
+      per_page: number;
+      total: number;
+    };
   };
   filters?: {
     search?: string;
@@ -54,6 +60,18 @@ export default function Index({ pricingPlans, filters = {}, stats }: Props) {
   // Provide default values if undefined
   const safeStats = stats || { total: 0, active: 0, inactive: 0 };
   const safePricingPlans = pricingPlans?.data || [];
+
+  // Use the correct pagination data from pricingPlans object, not meta
+  const paginationData = {
+    current_page: pricingPlans?.current_page || 1,
+    last_page: pricingPlans?.last_page || 1,
+    total: pricingPlans?.total || 0,
+    per_page: pricingPlans?.per_page || 15,
+    from: pricingPlans?.from || 0,
+    to: pricingPlans?.to || 0
+  };
+
+
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -394,19 +412,31 @@ export default function Index({ pricingPlans, filters = {}, stats }: Props) {
                   </p>
                 </div>
               ) : (
-                <DataTable columns={columns} data={safePricingPlans} />
+                <div className="space-y-6">
+                  <DataTable columns={columns} data={safePricingPlans} />
+
+                  {paginationData.last_page > 1 && (
+                    <CustomPagination
+                      currentPage={paginationData.current_page}
+                      totalPages={paginationData.last_page}
+                      totalItems={paginationData.total}
+                      itemsPerPage={paginationData.per_page}
+                      onPageChange={(page) => {
+                        router.get('/admin/pricing-plans', {
+                          page,
+                          search: searchTerm || undefined,
+                          status: statusFilter !== 'all' ? statusFilter : undefined,
+                        }, {
+                          preserveState: true,
+                          preserveScroll: true,
+                        });
+                      }}
+                    />
+                  )}
+                </div>
               )}
             </CardContent>
           </Card>
-
-          {/* Pagination */}
-          {pricingPlans && pricingPlans.meta && typeof pricingPlans.meta === 'object' && 'last_page' in pricingPlans.meta && (pricingPlans.meta.last_page as number) > 1 && (
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">
-                عرض {pricingPlans.data.length} من {'total' in pricingPlans.meta ? (pricingPlans.meta.total as number) : 0} نتيجة
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </AppLayout>

@@ -1,325 +1,275 @@
-import React, { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import React, { useState, useEffect } from 'react';
+import { Head, Link } from '@inertiajs/react';
+import { ColumnDef } from '@tanstack/react-table';
 import AppLayout from '@/layouts/app-layout';
-import { ModernPageHeader } from '@/components/ui/modern-page-header';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Pagination } from '@/components/ui/pagination';
-import LazyImage from '@/components/ui/lazy-image';
-import { Order } from '@/types';
-import {
-  ClipboardList,
-  Search,
-  Filter,
-  Eye,
-  User,
-  Calendar,
-  Package,
-  TrendingUp,
-  ShoppingCart,
-  CheckCircle,
-  Clock,
-  AlertCircle
-} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DataTableColumnHeader } from '@/components/ui/data-table';
+import { DataTablePagination } from '@/components/ui/data-table-pagination';
+import { usePagination } from '@/hooks/use-pagination';
+import { DesignerPageHeader } from '@/components/designer/DesignerPageHeader';
+import { DesignerStatsCards } from '@/components/designer/DesignerStatsCards';
+import { Package, Search, Loader2 } from 'lucide-react';
 
-interface Stats {
-  total: number;
-  completed: number;
-  pending: number;
-  processing: number;
+interface Order {
+  id: number;
+  client: {
+    name: string;
+    email: string;
+  };
+  rachma: {
+    title: string;
+    title_ar: string;
+    title_fr: string;
+  };
+  amount: number;
+  status: string;
+  created_at: string;
 }
 
 interface Props {
   orders: {
     data: Order[];
     current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
+    first_page_url: string;
     from: number;
+    last_page: number;
+    last_page_url: string;
+    links: Array<{
+      url: string | null;
+      label: string;
+      active: boolean;
+    }>;
+    next_page_url: string | null;
+    path: string;
+    per_page: number;
+    prev_page_url: string | null;
     to: number;
+    total: number;
   };
-  stats: Stats;
-  filters: {
+  filters?: {
     status?: string;
     search?: string;
+    date_from?: string;
+    date_to?: string;
+  };
+  stats?: {
+    total: number;
+    completed: number;
+    pending: number;
+    revenue: number;
   };
 }
 
-export default function Index({ orders, stats, filters }: Props) {
-  const [searchValue, setSearchValue] = useState(filters.search || '');
-  const [statusFilter, setStatusFilter] = useState(filters.status || 'all');
+export default function Index({ orders, filters = {}, stats }: Props) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(filters.search || '');
+  const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ar-DZ', {
-      style: 'currency',
-      currency: 'DZD',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
+  const { isLoading: isPaginationLoading, handlePageChange } = usePagination('/designer/orders', {
+    onSuccess: () => setIsLoading(false),
+    onError: () => setIsLoading(false)
+  });
 
-  const getOrderStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return (
-          <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white px-3 py-1 text-sm font-bold border-0">
-            مكتمل
-          </Badge>
-        );
-      case 'pending':
-        return (
-          <Badge className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-3 py-1 text-sm font-bold border-0">
-            معلق
-          </Badge>
-        );
-      case 'processing':
-        return (
-          <Badge className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1 text-sm font-bold border-0">
-            قيد المعالجة
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="secondary" className="px-3 py-1 text-sm font-bold">
-            {status}
-          </Badge>
-        );
+  // Update loading state when pagination is loading
+  useEffect(() => {
+    setIsLoading(isPaginationLoading);
+  }, [isPaginationLoading]);
+
+  // Handle search with debounce
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+
+    if (searchDebounceTimer) {
+      clearTimeout(searchDebounceTimer);
     }
+
+    const timer = setTimeout(() => {
+      handlePageChange(1, { search: value });
+    }, 300);
+
+    setSearchDebounceTimer(timer);
   };
 
-  const handleFilter = () => {
-    router.get('/designer/orders', {
-      search: searchValue,
-      status: statusFilter === 'all' ? '' : statusFilter,
-    }, {
-      preserveState: true,
-      preserveScroll: true,
-    });
-  };
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+      }
+    };
+  }, [searchDebounceTimer]);
 
-  const handleReset = () => {
-    setSearchValue('');
-    setStatusFilter('all');
-    router.get('/designer/orders', {}, {
-      preserveState: true,
-      preserveScroll: true,
-    });
-  };
+  const columns: ColumnDef<Order>[] = [
+    {
+      accessorKey: "id",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="رقم الطلب" />
+      ),
+      cell: ({ row }) => (
+        <span className="font-medium">#{row.getValue("id")}</span>
+      ),
+    },
+    {
+      accessorKey: "client",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="العميل" />
+      ),
+      cell: ({ row }) => {
+        const client = row.original.client;
+        return (
+          <div>
+            <div className="font-medium">{client.name}</div>
+            <div className="text-sm text-muted-foreground">{client.email}</div>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "rachma",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="الرشمة" />
+      ),
+      cell: ({ row }) => {
+        const rachma = row.original.rachma;
+        return (
+          <div>
+            <div className="font-medium">{rachma.title_ar}</div>
+            <div className="text-sm text-muted-foreground">{rachma.title}</div>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "amount",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="المبلغ" />
+      ),
+      cell: ({ row }) => (
+        <span className="font-semibold text-green-600">
+          {row.getValue("amount")} دج
+        </span>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="الحالة" />
+      ),
+      cell: ({ row }) => {
+        const status = row.getValue("status") as string;
+        return (
+          <Badge
+            variant={
+              status === 'completed' ? 'default' :
+              status === 'pending' ? 'secondary' :
+              'outline'
+            }
+          >
+            {status === 'completed' ? 'مكتمل' :
+             status === 'pending' ? 'قيد الانتظار' :
+             status}
+          </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: "created_at",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="تاريخ الطلب" />
+      ),
+      cell: ({ row }) => {
+        const date = new Date(row.getValue("created_at"));
+        return (
+          <span className="text-muted-foreground">
+            {date.toLocaleDateString('ar-DZ')}
+          </span>
+        );
+      },
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const order = row.original;
+        return (
+          <Button
+            variant="ghost"
+            size="icon"
+            asChild
+          >
+            <Link href={`/designer/orders/${order.id}`}>
+              <Package className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors" />
+            </Link>
+          </Button>
+        );
+      },
+    },
+  ];
 
   return (
     <AppLayout
       breadcrumbs={[
         { title: 'لوحة المصمم', href: '/designer/dashboard' },
-        { title: 'طلباتي', href: '/designer/orders' }
+        { title: 'الطلبات', href: '/designer/orders' }
       ]}
     >
-      <Head title="طلباتي - My Orders" />
-      
+      <Head title="إدارة الطلبات" />
+
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-        <div className="p-8 space-y-10">
-          {/* Header */}
-          <ModernPageHeader
-            title="طلباتي"
-            subtitle="عرض وإدارة جميع الطلبات على رشماتي"
-            icon={ClipboardList}
+        <div className="p-8 space-y-8">
+          <DesignerPageHeader
+            title="إدارة الطلبات"
+            subtitle="إدارة طلبات الرشمات الخاصة بك"
           />
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-blue-500/5 shadow-xl rounded-2xl">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-muted-foreground">إجمالي الطلبات</p>
-                    <p className="text-3xl font-bold text-foreground">{stats.total}</p>
-                  </div>
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-                    <ShoppingCart className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          {stats && <DesignerStatsCards stats={stats} />}
 
-            <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-green-500/5 shadow-xl rounded-2xl">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-muted-foreground">طلبات مكتملة</p>
-                    <p className="text-3xl font-bold text-green-600">{stats.completed}</p>
-                  </div>
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
-                    <CheckCircle className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-yellow-500/5 shadow-xl rounded-2xl">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-muted-foreground">طلبات معلقة</p>
-                    <p className="text-3xl font-bold text-yellow-600">{stats.pending}</p>
-                  </div>
-                  <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center">
-                    <Clock className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-purple-500/5 shadow-xl rounded-2xl">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-muted-foreground">قيد المعالجة</p>
-                    <p className="text-3xl font-bold text-purple-600">{stats.processing}</p>
-                  </div>
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <AlertCircle className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Filters */}
-          <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-muted/30 shadow-xl rounded-2xl">
-            <CardHeader className="text-right">
-              <CardTitle className="text-xl font-bold text-foreground text-right">البحث والتصفية</CardTitle>
-              <CardDescription className="text-muted-foreground text-right">
-                ابحث وصفي الطلبات حسب معايير مختلفة
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                
-                
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="text-center">
-                    <SelectValue placeholder="حالة الطلب" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem className="text-center" value="completed">مكتمل</SelectItem>
-                    <SelectItem className="text-center" value="pending">معلق</SelectItem>
-                    
-                  </SelectContent>
-                </Select>
-
-                <div className="flex gap-2">
-                  <Button onClick={handleFilter} className="flex-1">
-                    <Filter className="ml-2 h-4 w-4" />
-                    تطبيق الفلتر
-                  </Button>
-                  <Button variant="outline" onClick={handleReset}>
-                    إعادة تعيين
-                  </Button>
+          <Card className="transition-all duration-200 hover:shadow-md border-0 shadow-sm">
+            <CardHeader className="pb-6">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-2xl font-semibold text-foreground flex items-center gap-3">
+                  <Package className="w-6 h-6" />
+                  قائمة الطلبات
+                </CardTitle>
+                <div className="flex items-center gap-4">
+                  {isLoading && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      جاري التحديث...
+                    </div>
+                  )}
+                  <Badge variant="outline" className="text-sm">
+                    المجموع: {orders.total}
+                  </Badge>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Orders List */}
-          <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-muted/30 shadow-xl rounded-2xl">
-            <CardHeader className="text-right">
-              <CardTitle className="text-2xl font-bold text-foreground text-right">قائمة الطلبات</CardTitle>
-              <CardDescription className="text-muted-foreground text-right">
-                عرض {orders.from} - {orders.to} من أصل {orders.total} طلب
-              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {orders.data.length > 0 ? (
-                  orders.data.map((order) => (
-                    <div key={order.id} className="flex items-center justify-between p-6 bg-gradient-to-r from-muted/30 to-transparent rounded-xl border border-border/50 hover:border-border transition-colors">
-                      <div className="flex items-center gap-4 flex-1 min-w-0">
-                        {/* Rachma Image */}
-                        <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                          {order.rachma?.preview_image_urls && order.rachma.preview_image_urls.length > 0 ? (
-                            <LazyImage
-                              src={order.rachma.preview_image_urls[0]}
-                              alt={order.rachma.title}
-                              className="w-full h-full object-cover"
-                              aspectRatio="1:1"
-                              priority={false}
-                              showSkeleton={true}
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-muted to-muted/70 flex items-center justify-center">
-                              <Package className="w-8 h-8 text-muted-foreground" />
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Order Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-sm text-muted-foreground">#{order.id}</span>
-                            {getOrderStatusBadge(order.status)}
-                          </div>
-                          <h3 className="font-bold text-lg text-right truncate">{order.rachma?.title}</h3>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground text-right mt-1">
-                            <span className="flex items-center gap-1">
-                              <User className="w-4 h-4" />
-                              {order.client?.name || 'عميل'}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-4 h-4" />
-                              {new Date(order.created_at).toLocaleDateString('en-US', {year: 'numeric', month: '2-digit', day: '2-digit'})}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Order Actions */}
-                      <div className="text-right flex-shrink-0 ml-6">
-                        <p className="text-2xl font-bold text-green-600 mb-2">{formatCurrency(order.amount)}</p>
-                        <Link href={`/designer/orders/${order.id}`}>
-                          <Button variant="outline" size="sm">
-                            <Eye className="ml-2 h-4 w-4" />
-                            عرض التفاصيل
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-16">
-                    <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-                      <ClipboardList className="w-12 h-12 text-muted-foreground" />
-                    </div>
-                    <h3 className="text-xl font-bold text-foreground mb-2">لا توجد طلبات</h3>
-                    <p className="text-muted-foreground mb-6">لم يتم العثور على أي طلبات مطابقة للمعايير المحددة</p>
-                    {filters.search || filters.status ? (
-                      <Button variant="outline" onClick={handleReset}>
-                        إعادة تعيين الفلتر
-                      </Button>
-                    ) : null}
-                  </div>
-                )}
-              </div>
-
-              {/* Pagination */}
-              {orders.last_page > 1 && (
-                <div className="mt-8 flex justify-center">
-                  <Pagination
-                    currentPage={orders.current_page}
-                    totalPages={orders.last_page}
-                    onPageChange={(page) => {
-                      router.get('/designer/orders', {
-                        ...filters,
-                        page
-                      }, {
-                        preserveState: true,
-                        preserveScroll: true,
-                      });
-                    }}
+              {/* Search Bar */}
+              <div className="mb-6">
+                <div className="relative">
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    placeholder="البحث في الطلبات..."
+                    className="w-full h-10 pl-4 pr-10 text-sm border border-input bg-background rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
                   />
                 </div>
-              )}
+              </div>
+
+              {/* Data Table with Pagination */}
+              <DataTablePagination
+                columns={columns}
+                paginatedData={orders}
+                searchPlaceholder="البحث في الطلبات..."
+                searchColumn="id"
+                isLoading={isLoading}
+                onPageChange={(page) => handlePageChange(page, { search: searchQuery || undefined })}
+
+              />
             </CardContent>
           </Card>
         </div>

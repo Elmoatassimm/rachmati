@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 import AppLayout from '@/layouts/app-layout';
@@ -29,7 +29,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Users,
-  Trash2
+  Trash2,
+  Loader2
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -37,6 +38,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { DataTableColumnHeader } from '@/components/ui/data-table';
+import { DataTablePagination } from '@/components/ui/data-table-pagination';
+import { usePagination } from '@/hooks/use-pagination';
 
 interface Stats {
   total: number;
@@ -74,7 +78,43 @@ export default function Index({ rachmat, categories, filters, stats }: Props) {
   const [searchValue, setSearchValue] = useState(filters.search || '');
   const [categoryFilter, setCategoryFilter] = useState(filters.category || 'all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-console.log(rachmat);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+
+  const { isLoading: isPaginationLoading, handlePageChange } = usePagination('/designer/rachmat', {
+    onSuccess: () => setIsLoading(false),
+    onError: () => setIsLoading(false)
+  });
+
+  // Update loading state when pagination is loading
+  useEffect(() => {
+    setIsLoading(isPaginationLoading);
+  }, [isPaginationLoading]);
+
+  // Handle search with debounce
+  const handleSearch = (value: string) => {
+    setSearchValue(value);
+
+    if (searchDebounceTimer) {
+      clearTimeout(searchDebounceTimer);
+    }
+
+    const timer = setTimeout(() => {
+      handlePageChange(1, { search: value });
+    }, 300);
+
+    setSearchDebounceTimer(timer);
+  };
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+      }
+    };
+  }, [searchDebounceTimer]);
+
   const handleFilter = () => {
     const params: Record<string, string> = {};
 
@@ -103,25 +143,6 @@ console.log(rachmat);
     });
   };
 
-  const handlePageChange = (page: number) => {
-    const params: Record<string, string | number> = { page };
-
-    // Only include search if it has a value
-    if (searchValue && searchValue.trim()) {
-      params.search = searchValue.trim();
-    }
-
-    // Only include category if it's not 'all'
-    if (categoryFilter && categoryFilter !== 'all') {
-      params.category = categoryFilter;
-    }
-
-    router.get(route('designer.rachmat.index'), params, {
-      preserveState: true,
-      preserveScroll: true,
-    });
-  };
-
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('ar-DZ', {
       style: 'currency',
@@ -138,7 +159,133 @@ console.log(rachmat);
     });
   };
 
-
+  const columns: ColumnDef<Rachma>[] = [
+    {
+      accessorKey: "id",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="رقم الرشمة" />
+      ),
+      cell: ({ row }) => (
+        <span className="font-medium">#{row.getValue("id")}</span>
+      ),
+    },
+    {
+      accessorKey: "title",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="عنوان الرشمة" />
+      ),
+      cell: ({ row }) => {
+        const rachma = row.original;
+        return (
+          <div>
+            <div className="font-medium">{rachma.title_ar}</div>
+            <div className="text-sm text-muted-foreground">{rachma.title}</div>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "categories",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="التصنيفات" />
+      ),
+      cell: ({ row }) => {
+        const categories = row.original.categories;
+        return (
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => (
+              <Badge key={category.id} variant="outline">
+                {category.name_ar}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "price",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="السعر" />
+      ),
+      cell: ({ row }) => (
+        <span className="font-semibold text-green-600">
+          {formatPrice(row.getValue("price"))}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="الحالة" />
+      ),
+      cell: ({ row }) => {
+        const status = row.getValue("status") as string;
+        return (
+          <Badge
+            variant={
+              status === 'active' ? 'default' :
+              status === 'draft' ? 'secondary' :
+              'outline'
+            }
+          >
+            {status === 'active' ? 'نشط' :
+             status === 'draft' ? 'مسودة' :
+             status}
+          </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: "created_at",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="تاريخ الإنشاء" />
+      ),
+      cell: ({ row }) => {
+        const date = new Date(row.getValue("created_at"));
+        return (
+          <span className="text-muted-foreground">
+            {formatDate(row.getValue("created_at"))}
+          </span>
+        );
+      },
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const rachma = row.original;
+        return (
+          <div className="flex items-center justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link href={route('designer.rachmat.show', rachma.id)}>
+                    <Eye className="mr-2 h-4 w-4" />
+                    عرض التفاصيل
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (confirm('هل أنت متأكد من حذف هذه الرشمة؟')) {
+                      router.delete(route('designer.rachmat.destroy', rachma.id));
+                    }
+                  }}
+                  className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  حذف
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
+    },
+  ];
 
   return (
     <AppLayout
@@ -240,7 +387,7 @@ console.log(rachmat);
                   <Input
                     placeholder="البحث في الرشمات..."
                     value={searchValue}
-                    onChange={(e) => setSearchValue(e.target.value)}
+                    onChange={(e) => handleSearch(e.target.value)}
                     className="text-right pr-10 h-12 border-border/50 focus:border-primary/50 bg-background/50"
                     onKeyDown={(e) => e.key === 'Enter' && handleFilter()}
                   />
@@ -290,7 +437,11 @@ console.log(rachmat);
               </div>
             </CardHeader>
             <CardContent className="relative">
-              {rachmat.data.length === 0 ? (
+              {isLoading ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="w-16 h-16 animate-spin" />
+                </div>
+              ) : rachmat.data.length === 0 ? (
                 <div className="text-center py-16">
                   <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-muted to-muted/70 rounded-full flex items-center justify-center">
                     <Package className="h-12 w-12 text-muted-foreground" />

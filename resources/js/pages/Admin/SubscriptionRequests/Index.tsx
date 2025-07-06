@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, usePage, useForm, router } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
 import AppLayout from '@/layouts/app-layout';
@@ -9,6 +9,8 @@ import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { ModernStatsCard } from '@/components/ui/modern-stats-card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DataTable, DataTableColumnHeader, DataTableRowActions } from '@/components/ui/data-table';
+import { DataTablePagination } from '@/components/ui/data-table-pagination';
+import { usePagination } from '@/hooks/use-pagination';
 import {
     AlertCircle,
     Filter,
@@ -21,7 +23,9 @@ import {
     FileText,
     ArrowUpRight,
     ArrowDownRight,
-    TrendingUp
+    TrendingUp,
+    Loader2,
+    Search
 } from 'lucide-react';
 import { PageProps, SubscriptionRequest } from '@/types';
 import { format, parseISO } from 'date-fns';
@@ -51,10 +55,47 @@ export default function Index({ subscriptionRequests, statistics, filters }: Pro
     const { flash } = usePage<PageProps>().props;
     const [selectedRequests, setSelectedRequests] = useState<number[]>([]);
     const [bulkAction, setBulkAction] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState(filters.search || '');
+    const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
 
     const { data, setData, get } = useForm({
         status: filters.status || 'all',
     });
+
+    const { isLoading: isPaginationLoading, handlePageChange } = usePagination('/admin/subscription-requests', {
+        onSuccess: () => setIsLoading(false),
+        onError: () => setIsLoading(false)
+    });
+
+    // Update loading state when pagination is loading
+    useEffect(() => {
+        setIsLoading(isPaginationLoading);
+    }, [isPaginationLoading]);
+
+    // Handle search with debounce
+    const handleSearch = (value: string) => {
+        setSearchQuery(value);
+
+        if (searchDebounceTimer) {
+            clearTimeout(searchDebounceTimer);
+        }
+
+        const timer = setTimeout(() => {
+            handlePageChange(1, { search: value, status: data.status });
+        }, 300);
+
+        setSearchDebounceTimer(timer);
+    };
+
+    // Cleanup timer on unmount
+    useEffect(() => {
+        return () => {
+            if (searchDebounceTimer) {
+                clearTimeout(searchDebounceTimer);
+            }
+        };
+    }, [searchDebounceTimer]);
 
     // Provide safe defaults
     const safeSubscriptionRequests = subscriptionRequests?.data || [];
@@ -496,9 +537,17 @@ export default function Index({ subscriptionRequests, statistics, filters }: Pro
                                 </p>
                             </div>
                         ) : (
-                            <DataTable
+                            <DataTablePagination
                                 columns={columns}
-                                data={safeSubscriptionRequests}
+                                paginatedData={subscriptionRequests}
+                                searchPlaceholder="البحث في الطلبات..."
+                                searchColumn="designer.user.name"
+                                isLoading={isLoading}
+                                onPageChange={(page) => handlePageChange(page, {
+                                  search: searchQuery || undefined,
+                                  status: data.status !== 'all' ? data.status : undefined
+                                })}
+
                             />
                         )}
                     </CardContent>

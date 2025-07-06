@@ -41,6 +41,743 @@ class SubscriptionRequestSeeder extends Seeder
                 'count' => 4,
                 'days_ago' => [12, 18, 22, 28],
             ],
+            [
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],[
+                'status' => 'approved',
+                'count' => 10,
+                'days_ago' => [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+            ],
         ];
 
         foreach ($requestsData as $requestType) {

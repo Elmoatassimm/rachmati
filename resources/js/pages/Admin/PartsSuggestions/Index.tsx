@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,35 +12,39 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { 
-  Plus, 
-  Search, 
-  MoreVertical, 
-  Edit, 
-  Trash2, 
-  Eye, 
+import CustomPagination from '@/components/ui/custom-pagination';
+import {
+  Plus,
+  Search,
+  MoreVertical,
+  Edit,
+  Trash2,
+  Eye,
   EyeOff,
   FileText,
-  Globe 
+  Globe
 } from 'lucide-react';
 import { PartsSuggestion, PageProps } from '@/types';
-
-interface PaginationLink {
-  url: string | null;
-  label: string;
-  active: boolean;
-}
 
 interface Props extends PageProps {
   partsSuggestions?: {
     data: PartsSuggestion[];
-    links: PaginationLink[];
-    meta: {
-      current_page: number;
-      last_page: number;
-      per_page: number;
-      total: number;
-    };
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number;
+    to: number;
+    links: Array<{
+      url: string | null;
+      label: string;
+      active: boolean;
+    }>;
+    first_page_url: string;
+    last_page_url: string;
+    next_page_url: string | null;
+    prev_page_url: string | null;
+    path: string;
   };
   filters?: {
     search?: string;
@@ -54,8 +59,16 @@ export default function Index({ partsSuggestions, filters = {} }: Props) {
 
   // Safe access to partsSuggestions properties with defaults
   const suggestions = partsSuggestions?.data || [];
-  const meta = partsSuggestions?.meta || { total: 0, last_page: 1, current_page: 1, per_page: 15 };
-  const links = partsSuggestions?.links || [];
+
+  // Use the correct pagination data from partsSuggestions object, not meta
+  const paginationData = {
+    current_page: partsSuggestions?.current_page || 1,
+    last_page: partsSuggestions?.last_page || 1,
+    total: partsSuggestions?.total || 0,
+    per_page: partsSuggestions?.per_page || 15,
+    from: partsSuggestions?.from || 0,
+    to: partsSuggestions?.to || 0
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,7 +160,7 @@ export default function Index({ partsSuggestions, filters = {} }: Props) {
               </CardHeader>
               <CardContent className="relative pt-0">
                 <div className="text-4xl font-black bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
-                  {meta.total.toLocaleString()}
+                  {paginationData.total.toLocaleString()}
                 </div>
                 <p className="text-sm text-muted-foreground mt-2 font-medium">Total Suggestions</p>
                 <div className="mt-3 h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"></div>
@@ -205,81 +218,103 @@ export default function Index({ partsSuggestions, filters = {} }: Props) {
             </CardHeader>
             <CardContent>
               {suggestions.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-right p-3 font-semibold">الاسم بالعربية</th>
-                        <th className="text-right p-3 font-semibold">الاسم بالفرنسية</th>
-                        <th className="text-center p-3 font-semibold">الحالة</th>
-                        <th className="text-center p-3 font-semibold">تاريخ الإنشاء</th>
-                        <th className="text-center p-3 font-semibold">الإجراءات</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {suggestions.map((suggestion) => (
-                        <tr key={suggestion.id} className="border-b">
-                          <td className="p-3">
-                            <div className="font-medium">{suggestion.name_ar}</div>
-                          </td>
-                          <td className="p-3">
-                            <div className="text-gray-600">{suggestion.name_fr}</div>
-                          </td>
-                          <td className="p-3 text-center">
-                            <Badge 
-                              variant={suggestion.is_active ? "default" : "secondary"}
-                              className={suggestion.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}
-                            >
-                              {suggestion.is_active ? 'نشط' : 'غير نشط'}
-                            </Badge>
-                          </td>
-                          <td className="p-3 text-center text-gray-600">
-                            {new Date(suggestion.created_at).toLocaleDateString('ar-SA')}
-                          </td>
-                          <td className="p-3 text-center">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                  <MoreVertical className="w-4 h-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem asChild>
-                                  <Link href={route('admin.parts-suggestions.edit', suggestion.id)}>
-                                    <Edit className="w-4 h-4 ml-2" />
-                                    تعديل
-                                  </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  onClick={() => toggleStatus(suggestion.id)}
-                                >
-                                  {suggestion.is_active ? (
-                                    <>
-                                      <EyeOff className="w-4 h-4 ml-2" />
-                                      إلغاء التفعيل
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Eye className="w-4 h-4 ml-2" />
-                                      تفعيل
-                                    </>
-                                  )}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  onClick={() => handleDelete(suggestion.id)}
-                                  className="text-red-600"
-                                >
-                                  <Trash2 className="w-4 h-4 ml-2" />
-                                  حذف
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </td>
+                <>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-right p-3 font-semibold">الاسم بالعربية</th>
+                          <th className="text-right p-3 font-semibold">الاسم بالفرنسية</th>
+                          <th className="text-center p-3 font-semibold">الحالة</th>
+                          <th className="text-center p-3 font-semibold">تاريخ الإنشاء</th>
+                          <th className="text-center p-3 font-semibold">الإجراءات</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {suggestions.map((suggestion) => (
+                          <tr key={suggestion.id} className="border-b">
+                            <td className="p-3">
+                              <div className="font-medium">{suggestion.name_ar}</div>
+                            </td>
+                            <td className="p-3">
+                              <div className="text-gray-600">{suggestion.name_fr}</div>
+                            </td>
+                            <td className="p-3 text-center">
+                              <Badge 
+                                variant={suggestion.is_active ? "default" : "secondary"}
+                                className={suggestion.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}
+                              >
+                                {suggestion.is_active ? 'نشط' : 'غير نشط'}
+                              </Badge>
+                            </td>
+                            <td className="p-3 text-center text-gray-600">
+                              {new Date(suggestion.created_at).toLocaleDateString('ar-SA')}
+                            </td>
+                            <td className="p-3 text-center">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <MoreVertical className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem asChild>
+                                    <Link href={route('admin.parts-suggestions.edit', suggestion.id)}>
+                                      <Edit className="w-4 h-4 ml-2" />
+                                      تعديل
+                                    </Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    onClick={() => toggleStatus(suggestion.id)}
+                                  >
+                                    {suggestion.is_active ? (
+                                      <>
+                                        <EyeOff className="w-4 h-4 ml-2" />
+                                        إلغاء التفعيل
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Eye className="w-4 h-4 ml-2" />
+                                        تفعيل
+                                      </>
+                                    )}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    onClick={() => handleDelete(suggestion.id)}
+                                    className="text-red-600"
+                                  >
+                                    <Trash2 className="w-4 h-4 ml-2" />
+                                    حذف
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {paginationData.last_page > 1 && (
+                    <div className="mt-6">
+                      <CustomPagination
+                        currentPage={paginationData.current_page}
+                        totalPages={paginationData.last_page}
+                        totalItems={paginationData.total}
+                        itemsPerPage={paginationData.per_page}
+                        onPageChange={(page) => {
+                          router.get(route('admin.parts-suggestions.index'), {
+                            page,
+                            search: search || undefined,
+                          }, {
+                            preserveState: true,
+                            preserveScroll: true,
+                          });
+                        }}
+
+                      />
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="text-center py-8">
                   <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -299,24 +334,6 @@ export default function Index({ partsSuggestions, filters = {} }: Props) {
               )}
             </CardContent>
           </Card>
-
-          {/* Pagination */}
-          {meta.last_page > 1 && (
-            <div className="flex justify-center">
-              <div className="flex space-x-2 space-x-reverse">
-                {links.map((link, index) => (
-                  <Button
-                    key={index}
-                    variant={link.active ? "default" : "outline"}
-                    size="sm"
-                    disabled={!link.url}
-                    onClick={() => link.url && router.get(link.url)}
-                    dangerouslySetInnerHTML={{ __html: link.label }}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </AppLayout>

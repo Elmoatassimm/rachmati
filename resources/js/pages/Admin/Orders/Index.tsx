@@ -1,15 +1,16 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTable, DataTableColumnHeader } from '@/components/ui/data-table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
-import { Order } from '@/types';
+import { DataTableColumnHeader } from '@/components/ui/data-table';
+import { DataTablePagination } from '@/components/ui/data-table-pagination';
+import { usePagination } from '@/hooks/use-pagination';
 import {
   ShoppingCart,
   Clock,
@@ -23,6 +24,36 @@ import {
   RefreshCw,
   Eye
 } from 'lucide-react';
+
+interface User {
+  name: string;
+  email: string;
+}
+
+interface Designer {
+  user: User;
+}
+
+interface Category {
+  name: string;
+}
+
+interface Rachma {
+  title: string;
+  title_ar: string;
+  title_fr: string;
+  designer: Designer;
+  categories: Category[];
+}
+
+interface Order {
+  id: number;
+  client: User;
+  rachma: Rachma;
+  amount: number;
+  status: string;
+  created_at: string;
+}
 
 interface Stats {
   total: number;
@@ -61,14 +92,29 @@ interface FilterUIState {
 interface Props {
   orders?: {
     data: Order[];
-    links: Record<string, unknown>[];
-    meta: Record<string, unknown>;
+    current_page: number;
+    first_page_url: string;
+    from: number;
+    last_page: number;
+    last_page_url: string;
+    links: Array<{
+      url: string | null;
+      label: string;
+      active: boolean;
+    }>;
+    next_page_url: string | null;
+    path: string;
+    per_page: number;
+    prev_page_url: string | null;
+    to: number;
+    total: number;
   };
   filters?: {
     status?: string;
     search?: string;
     date_from?: string;
     date_to?: string;
+    page?: number;
   };
   stats?: Stats;
 }
@@ -167,8 +213,18 @@ export default function Index({ orders, filters = {}, stats }: Props) {
   // Provide default values for orders if undefined
   const safeOrders = orders || {
     data: [],
+    current_page: 1,
+    first_page_url: '',
+    from: 0,
+    last_page: 1,
+    last_page_url: '',
     links: [],
-    meta: { from: 0, to: 0, total: 0, last_page: 1 }
+    next_page_url: null,
+    path: '',
+    per_page: 15,
+    prev_page_url: null,
+    to: 0,
+    total: 0
   };
 
   // Update UI state when filters change
@@ -180,16 +236,22 @@ export default function Index({ orders, filters = {}, stats }: Props) {
     }));
   }, [hasActiveFilters, safeOrders.data.length]);
 
-  // Apply filters with validation and loading states
+  const { isLoading: isPaginationLoading, handlePageChange } = usePagination('/admin/orders', {
+    onSuccess: () => {
+      setUiState(prev => ({
+        ...prev,
+        lastAppliedFilters: { ...filterState },
+      }));
+    }
+  });
+
+  // Update applyFilters to use handlePageChange
   const applyFilters = useCallback((filters: FilterState) => {
     const validation = validateFilters(filters);
 
     if (!validation.isValid) {
-      // Show validation errors (we'll implement this in the UI)
       return;
     }
-
-    setUiState(prev => ({ ...prev, isLoading: true }));
 
     const queryParams: Record<string, string> = {};
 
@@ -209,24 +271,8 @@ export default function Index({ orders, filters = {}, stats }: Props) {
       queryParams.date_to = filters.dateTo;
     }
 
-    router.visit('/admin/orders', {
-      method: 'get',
-      data: queryParams,
-      preserveState: true,
-      replace: true,
-      preserveScroll: true, // Ensure proper scrolling behavior during updates
-      onSuccess: () => {
-        setUiState(prev => ({
-          ...prev,
-          isLoading: false,
-          lastAppliedFilters: { ...filters },
-        }));
-      },
-      onError: () => {
-        setUiState(prev => ({ ...prev, isLoading: false }));
-      },
-    });
-  }, [validateFilters]);
+    handlePageChange(1, queryParams);
+  }, [handlePageChange, validateFilters]);
 
   // Debounced search handler
   const handleSearchChange = useCallback((value: string) => {
@@ -357,7 +403,15 @@ export default function Index({ orders, filters = {}, stats }: Props) {
     };
   }, [searchDebounceTimer]);
 
-
+  // Update UI state when filters or pagination loading changes
+  useEffect(() => {
+    setUiState(prev => ({
+      ...prev,
+      isLoading: isPaginationLoading,
+      hasActiveFilters,
+      resultCount: safeOrders.data.length,
+    }));
+  }, [isPaginationLoading, hasActiveFilters, safeOrders.data.length]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('ar-DZ', {
@@ -568,8 +622,6 @@ export default function Index({ orders, filters = {}, stats }: Props) {
                 <div className="mt-3 h-1 bg-gradient-to-r from-amber-500 to-amber-600 rounded-full"></div>
               </CardContent>
             </Card>
-
-
 
             {/* Completed Orders */}
             <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-muted/30 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
@@ -842,7 +894,7 @@ export default function Index({ orders, filters = {}, stats }: Props) {
                   </div>
                 )}
                 <Badge variant="outline" className="text-sm">
-                  المجموع: {safeOrders.data.length}
+                  المجموع: {safeOrders.total}
                 </Badge>
               </div>
             </div>
@@ -884,13 +936,20 @@ export default function Index({ orders, filters = {}, stats }: Props) {
                 )}
               </div>
             ) : (
-              /* Data Table */
-              <DataTable
+              /* Data Table with Pagination */
+              <DataTablePagination
                 columns={columns}
-                data={safeOrders.data}
+                paginatedData={safeOrders}
                 searchPlaceholder="البحث في الطلبات..."
                 searchColumn="id"
-                globalFilter={false}
+                isLoading={uiState.isLoading}
+                onPageChange={(page) => handlePageChange(page, {
+                  search: filterState.search || undefined,
+                  status: filterState.status !== 'all' ? filterState.status : undefined,
+                  date_from: filterState.dateFrom || undefined,
+                  date_to: filterState.dateTo || undefined,
+                })}
+
               />
             )}
           </CardContent>

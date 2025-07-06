@@ -10,6 +10,7 @@ use App\Services\TelegramService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use App\Http\Requests\Admin\UpdateOrderRequest;
+use Carbon\Carbon;
 
 class OrderController extends Controller
 {
@@ -52,15 +53,33 @@ class OrderController extends Controller
         }
 
         // Date filter
-        if ($request->has('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
+        if ($request->has('date_from') && $request->date_from) {
+            try {
+                $dateFrom = Carbon::parse($request->date_from)->startOfDay();
+                $query->whereDate('created_at', '>=', $dateFrom);
+            } catch (\Exception $e) {
+                // Invalid date format, skip this filter
+                Log::warning('Invalid date_from format in orders filter', [
+                    'date_from' => $request->date_from,
+                    'error' => $e->getMessage()
+                ]);
+            }
         }
 
-        if ($request->has('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
+        if ($request->has('date_to') && $request->date_to) {
+            try {
+                $dateTo = Carbon::parse($request->date_to)->endOfDay();
+                $query->whereDate('created_at', '<=', $dateTo);
+            } catch (\Exception $e) {
+                // Invalid date format, skip this filter
+                Log::warning('Invalid date_to format in orders filter', [
+                    'date_to' => $request->date_to,
+                    'error' => $e->getMessage()
+                ]);
+            }
         }
 
-        $orders = $query->paginate(15);
+        $orders = $query->paginate(10)->withQueryString();
 
         // Summary statistics (simplified system)
         $stats = [
@@ -199,7 +218,7 @@ class OrderController extends Controller
         }
 
         // Check if this is an AJAX request (for inline updates)
-        if ($request->wantsJson() || $request->header('X-Inertia')) {
+        if ($request->expectsJson() || $request->header('X-Inertia')) {
             return redirect()
                 ->route('admin.orders.index')
                 ->with('success', 'تم تحديث حالة الطلب بنجاح ');

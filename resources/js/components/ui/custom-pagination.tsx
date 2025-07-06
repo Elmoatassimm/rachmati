@@ -10,7 +10,7 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 
-interface PaginationProps {
+interface CustomPaginationProps {
   currentPage: number;
   totalPages: number;
   totalItems: number;
@@ -19,9 +19,11 @@ interface PaginationProps {
   showGoToPage?: boolean;
   showTotalInfo?: boolean;
   className?: string;
+  // Additional params to pass with navigation
+  additionalParams?: Record<string, any>;
 }
 
-export function Pagination({
+export function CustomPagination({
   currentPage,
   totalPages,
   totalItems,
@@ -29,8 +31,9 @@ export function Pagination({
   onPageChange,
   showGoToPage = true,
   showTotalInfo = true,
-  className
-}: PaginationProps) {
+  className,
+  additionalParams = {}
+}: CustomPaginationProps) {
   const [goToPage, setGoToPage] = useState('');
 
   if (totalPages <= 1) return null;
@@ -49,12 +52,14 @@ export function Pagination({
     }
   };
 
+
+
   // Calculate visible page numbers
   const getVisiblePages = () => {
     const maxVisiblePages = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
     // Adjust if we're near the end
     if (endPage - startPage < maxVisiblePages - 1) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
@@ -80,7 +85,7 @@ export function Pagination({
               عرض {fromItem.toLocaleString()} إلى {toItem.toLocaleString()} من {totalItems.toLocaleString()} عنصر
             </div>
           )}
-
+          
 
         </div>
 
@@ -127,7 +132,7 @@ export function Pagination({
               {Array.from({ length: endPage - startPage + 1 }, (_, i) => {
                 const page = startPage + i;
                 const isCurrentPage = page === currentPage;
-
+                
                 return (
                   <Button
                     key={page}
@@ -136,8 +141,8 @@ export function Pagination({
                     onClick={() => onPageChange(page)}
                     className={cn(
                       "h-9 w-9 p-0",
-                      isCurrentPage
-                        ? "bg-primary text-primary-foreground shadow-md"
+                      isCurrentPage 
+                        ? "bg-primary text-primary-foreground shadow-md" 
                         : "bg-background/50 hover:bg-background border-border/50"
                     )}
                     aria-label={`الصفحة ${page}`}
@@ -218,3 +223,5 @@ export function Pagination({
     </Card>
   );
 }
+
+export default CustomPagination;

@@ -27,7 +27,20 @@ class SubscriptionRequestController extends Controller
             $query->where('status', $request->status);
         }
 
-        $subscriptionRequests = $query->paginate(20);
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('designer.user', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            })
+            ->orWhereHas('designer', function ($q) use ($search) {
+                $q->where('store_name', 'like', "%{$search}%");
+            });
+        }
+
+        $subscriptionRequests = $query->paginate(10)
+            ->withQueryString();
 
         // Get statistics
         $statistics = [
@@ -40,7 +53,7 @@ class SubscriptionRequestController extends Controller
         return Inertia::render('Admin/SubscriptionRequests/Index', [
             'subscriptionRequests' => $subscriptionRequests,
             'statistics' => $statistics,
-            'filters' => $request->only(['status']),
+            'filters' => $request->only(['status', 'search']),
         ]);
     }
 

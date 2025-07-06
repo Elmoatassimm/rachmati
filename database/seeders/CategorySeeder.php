@@ -150,6 +150,504 @@ class CategorySeeder extends Seeder
             [
                 'name_ar' => 'رشمات العباءات',
                 'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
+            ],[
+                'name_ar' => 'رشمات العباءات',
+                'name_fr' => 'Rachmat d\'Abayas',
             ],
         ];
 

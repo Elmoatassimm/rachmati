@@ -1,188 +1,120 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Head, router } from '@inertiajs/react';
+import React, { useState, useEffect } from 'react';
+import { Head, Link } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTable, DataTableColumnHeader, DataTableRowActions } from '@/components/ui/data-table';
-import { AdminPaymentInfo } from '@/types';
-import {
-  Wallet,
-  CreditCard,
-  BarChart3,
-  Plus,
-  RefreshCw
-} from 'lucide-react';
+import { DataTableColumnHeader } from '@/components/ui/data-table';
+import { DataTablePagination } from '@/components/ui/data-table-pagination';
+import { usePagination } from '@/hooks/use-pagination';
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
+import { Package, Search, Loader2, Plus } from 'lucide-react';
 
-interface Stats {
-  total: number;
-}
-
-interface FilterState {
-  search: string;
-}
-
-interface FilterValidation {
-  isValid: boolean;
-  errors: {
-    search?: string;
-  };
-}
-
-interface FilterUIState {
-  isLoading: boolean;
-  isValidating: boolean;
-  hasActiveFilters: boolean;
-  resultCount: number;
-  lastAppliedFilters: FilterState | null;
+interface PaymentInfo {
+  id: number;
+  ccp_number: string;
+  ccp_key: string;
+  nom: string;
+  adress: string;
+  baridimob: string;
+  created_at: string;
+  updated_at: string;
+  formatted_ccp_number?: string;
+  masked_ccp_key?: string;
 }
 
 interface Props {
   paymentInfos: {
-    data: AdminPaymentInfo[];
-    links: Record<string, unknown>;
-    meta: Record<string, unknown>;
+    data: PaymentInfo[];
+    current_page: number;
+    first_page_url: string;
+    from: number;
+    last_page: number;
+    last_page_url: string;
+    links: Array<{
+      url: string | null;
+      label: string;
+      active: boolean;
+    }>;
+    next_page_url: string | null;
+    path: string;
+    per_page: number;
+    prev_page_url: string | null;
+    to: number;
+    total: number;
   };
-  filters: FilterState;
-  stats: Stats;
+  filters?: {
+    search?: string;
+    is_active?: boolean;
+  };
 }
 
-export default function Index({ paymentInfos, filters, stats }: Props) {
-  const [localFilters, setLocalFilters] = useState<FilterState>(filters);
-  const [filterUI, setFilterUI] = useState<FilterUIState>({
-    isLoading: false,
-    isValidating: false,
-    hasActiveFilters: Object.values(filters).some(value => value !== '' && value !== null),
-    resultCount: paymentInfos.data.length,
-    lastAppliedFilters: filters,
+export default function Index({ paymentInfos, filters = {} }: Props) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(filters.search || '');
+  const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+
+  const { isLoading: isPaginationLoading, handlePageChange } = usePagination('/admin/payment-info', {
+    onSuccess: () => setIsLoading(false),
+    onError: () => setIsLoading(false)
   });
 
-  // Validation logic
-  const validateFilters = useCallback((filterState: FilterState): FilterValidation => {
-    const errors: FilterValidation['errors'] = {};
+  // Update loading state when pagination is loading
+  useEffect(() => {
+    setIsLoading(isPaginationLoading);
+  }, [isPaginationLoading]);
 
-    // Search validation
-    if (filterState.search && filterState.search.length > 100) {
-      errors.search = 'البحث لا يجب أن يتجاوز 100 حرف';
+  // Handle search with debounce
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+
+    if (searchDebounceTimer) {
+      clearTimeout(searchDebounceTimer);
     }
 
-
-
-    return {
-      isValid: Object.keys(errors).length === 0,
-      errors
-    };
-  }, []);
-
-  const [validation, setValidation] = useState<FilterValidation>(validateFilters(localFilters));
-
-  // Update validation when filters change
-  useEffect(() => {
-    setFilterUI(prev => ({ ...prev, isValidating: true }));
-    
     const timer = setTimeout(() => {
-      const newValidation = validateFilters(localFilters);
-      setValidation(newValidation);
-      setFilterUI(prev => ({ 
-        ...prev, 
-        isValidating: false,
-        hasActiveFilters: Object.values(localFilters).some(value => value !== '' && value !== null)
-      }));
+      handlePageChange(1, { search: value });
     }, 300);
 
-    return () => clearTimeout(timer);
-  }, [localFilters, validateFilters]);
-
-  const applyFilters = useCallback(() => {
-    if (!validation.isValid) return;
-
-    setFilterUI(prev => ({ ...prev, isLoading: true }));
-
-    router.get('/admin/payment-info', localFilters, {
-      preserveState: true,
-      preserveScroll: true,
-      onSuccess: () => {
-        setFilterUI(prev => ({
-          ...prev,
-          isLoading: false,
-          lastAppliedFilters: { ...localFilters },
-          resultCount: paymentInfos.data.length
-        }));
-      },
-      onError: () => {
-        setFilterUI(prev => ({ ...prev, isLoading: false }));
-      }
-    });
-  }, [localFilters, validation.isValid, paymentInfos.data.length]);
-
-  const clearFilters = useCallback(() => {
-    const emptyFilters = { search: '' };
-    setLocalFilters(emptyFilters);
-    
-    setFilterUI(prev => ({ ...prev, isLoading: true }));
-
-    router.get('/admin/payment-info', emptyFilters, {
-      preserveState: true,
-      preserveScroll: true,
-      onSuccess: () => {
-        setFilterUI(prev => ({
-          ...prev,
-          isLoading: false,
-          hasActiveFilters: false,
-          lastAppliedFilters: emptyFilters,
-          resultCount: paymentInfos.data.length
-        }));
-      },
-      onError: () => {
-        setFilterUI(prev => ({ ...prev, isLoading: false }));
-      }
-    });
-  }, [paymentInfos.data.length]);
-
-  const refreshData = useCallback(() => {
-    setFilterUI(prev => ({ ...prev, isLoading: true }));
-    
-    router.reload({
-      preserveState: true,
-      preserveScroll: true,
-      onSuccess: () => {
-        setFilterUI(prev => ({ ...prev, isLoading: false }));
-      },
-      onError: () => {
-        setFilterUI(prev => ({ ...prev, isLoading: false }));
-      }
-    });
-  }, []);
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ar-DZ', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    setSearchDebounceTimer(timer);
   };
 
-  const columns: ColumnDef<AdminPaymentInfo>[] = [
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+      }
+    };
+  }, [searchDebounceTimer]);
+
+  const columns: ColumnDef<PaymentInfo>[] = [
+    {
+      accessorKey: "id",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="الرقم" />
+      ),
+      cell: ({ row }) => (
+        <span className="font-medium">#{row.getValue("id")}</span>
+      ),
+    },
     {
       accessorKey: "ccp_number",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="رقم CCP" />
       ),
       cell: ({ row }) => (
-        <span className="text-sm font-mono">
-          {row.getValue("ccp_number") || '-'}
-        </span>
+        <span className="font-medium">{row.getValue("formatted_ccp_number") || row.getValue("ccp_number")}</span>
       ),
     },
     {
       accessorKey: "nom",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="اسم صاحب الحساب" />
+        <DataTableColumnHeader column={column} title="صاحب الحساب" />
       ),
       cell: ({ row }) => (
-        <span className="text-sm">
-          {row.getValue("nom") || '-'}
-        </span>
+        <span className="font-medium">{row.getValue("nom")}</span>
       ),
     },
     {
@@ -191,149 +123,114 @@ export default function Index({ paymentInfos, filters, stats }: Props) {
         <DataTableColumnHeader column={column} title="رقم BaridiMob" />
       ),
       cell: ({ row }) => (
-        <span className="text-sm font-mono">
-          {row.getValue("baridimob") || '-'}
-        </span>
+        <span className="font-medium">{row.getValue("baridimob")}</span>
       ),
     },
     {
       accessorKey: "created_at",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="التاريخ" />
+        <DataTableColumnHeader column={column} title="تاريخ الإنشاء" />
       ),
-      cell: ({ row }) => (
-        <span className="text-sm text-gray-600">
-          {formatDate(row.getValue("created_at"))}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const date = new Date(row.getValue("created_at"));
+        return (
+          <span className="text-muted-foreground">
+            {date.toLocaleDateString('ar-DZ')}
+          </span>
+        );
+      },
     },
     {
       id: "actions",
-      enableHiding: false,
       cell: ({ row }) => {
+        const paymentInfo = row.original;
         return (
-          <DataTableRowActions
-            row={row}
-            actions={[
-              {
-                label: "عرض التفاصيل",
-                onClick: (paymentInfo: AdminPaymentInfo) => {
-                  router.visit(`/admin/payment-info/${paymentInfo.id}`);
-                },
-              },
-              {
-                label: "تعديل",
-                onClick: (paymentInfo: AdminPaymentInfo) => {
-                  router.visit(`/admin/payment-info/${paymentInfo.id}/edit`);
-                },
-              },
-            ]}
-          />
+          <Button
+            variant="ghost"
+            size="icon"
+            asChild
+          >
+            <Link href={`/admin/payment-info/${paymentInfo.id}/edit`}>
+              <Package className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors" />
+            </Link>
+          </Button>
         );
       },
     },
   ];
 
   return (
-    <AppLayout 
+    <AppLayout
       breadcrumbs={[
         { title: 'لوحة الإدارة', href: '/admin/dashboard' },
         { title: 'معلومات الدفع', href: '/admin/payment-info' }
       ]}
     >
-      <Head title="إدارة معلومات الدفع - Payment Info Management" />
+      <Head title="إدارة معلومات الدفع" />
 
-      <div className="space-y-8 p-6">
-        {/* Header Section */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-blue-600/20 to-indigo-600/20 rounded-3xl"></div>
-          <div className="relative bg-card/80 backdrop-blur-sm border border-border/50 rounded-3xl p-8 shadow-xl">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-gradient-to-br from-purple-500 to-blue-600 rounded-2xl shadow-lg">
-                    <Wallet className="h-8 w-8 text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                      معلومات الدفع
-                    </h1>
-                    <p className="text-2xl text-muted-foreground mt-3 leading-relaxed font-medium">
-                      إدارة معلومات الدفع
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+        <div className="p-8 space-y-8">
+          <AdminPageHeader
+            title="إدارة معلومات الدفع"
+            subtitle="إدارة معلومات الحسابات البنكية للدفع"
+            action={
+              <Button asChild>
+                <Link href="/admin/payment-info/create">
+                  <Plus className="w-4 h-4 ml-2" />
+                  إضافة حساب جديد
+                </Link>
+              </Button>
+            }
+          />
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-          <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-muted/30 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-blue-500/5"></div>
-            <CardHeader className="relative pb-3">
+          <Card className="transition-all duration-200 hover:shadow-md border-0 shadow-sm">
+            <CardHeader className="pb-6">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-bold text-muted-foreground uppercase tracking-wider">المجموع</CardTitle>
-                <div className="p-2 bg-blue-500/10 rounded-xl group-hover:bg-blue-500/20 transition-colors">
-                  <BarChart3 className="h-5 w-5 text-blue-600" />
+                <CardTitle className="text-2xl font-semibold text-foreground flex items-center gap-3">
+                  <Package className="w-6 h-6" />
+                  قائمة الحسابات البنكية
+                </CardTitle>
+                <div className="flex items-center gap-4">
+                  {isLoading && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      جاري التحديث...
+                    </div>
+                  )}
+                  <Badge variant="outline" className="text-sm">
+                    المجموع: {paymentInfos.total}
+                  </Badge>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="relative">
-              <div className="text-4xl font-bold text-blue-600 mb-2">{stats.total}</div>
-              <p className="text-sm text-muted-foreground font-medium">إجمالي معلومات الدفع</p>
+            <CardContent>
+              {/* Search Bar */}
+              <div className="mb-6">
+                <div className="relative">
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    placeholder="البحث في الحسابات..."
+                    className="w-full h-10 pl-4 pr-10 text-sm border border-input bg-background rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Data Table with Pagination */}
+              <DataTablePagination
+                columns={columns}
+                paginatedData={paymentInfos}
+                searchPlaceholder="البحث في الحسابات..."
+                searchColumn="ccp_number"
+                isLoading={isLoading}
+                onPageChange={(page) => handlePageChange(page, { search: searchQuery || undefined })}
+
+              />
             </CardContent>
           </Card>
         </div>
-
-        {/* Main Content */}
-        <Card className="border-0 shadow-xl bg-card/50 backdrop-blur-sm">
-          <CardHeader className="border-b border-border/50 bg-muted/30">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <CreditCard className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <CardTitle className="text-xl font-bold">قائمة معلومات الدفع</CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    إدارة ومتابعة معلومات الدفع للمديرين
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <Button
-                  onClick={refreshData}
-                  variant="outline"
-                  size="sm"
-                  disabled={filterUI.isLoading}
-                  className="gap-2"
-                >
-                  <RefreshCw className={`h-4 w-4 ${filterUI.isLoading ? 'animate-spin' : ''}`} />
-                  تحديث
-                </Button>
-                
-                <Button
-                  onClick={() => router.visit('/admin/payment-info/create')}
-                  className="gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                >
-                  <Plus className="h-4 w-4" />
-                  إضافة معلومات دفع
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-
-          <CardContent className="p-6">
-            <DataTable
-              columns={columns}
-              data={paymentInfos.data}
-              searchPlaceholder="البحث في معلومات الدفع..."
-            />
-          </CardContent>
-        </Card>
       </div>
     </AppLayout>
   );
