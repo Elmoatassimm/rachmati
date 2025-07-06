@@ -16,14 +16,12 @@ import {
   DollarSign,
   Calendar,
   Download,
-  FileImage,
   Trash2,
   Star,
   ShoppingCart,
-  Layers,
+  File,
   FileText,
   Image as ImageIcon,
-  File,
   BarChart3
 } from 'lucide-react';
 
@@ -38,6 +36,7 @@ interface ExtendedRachma extends Rachma {
   categories?: Category[];
   title?: string;
   orders?: Order[];
+  preview_image_urls?: string[];
 }
 
 interface Props {
@@ -139,16 +138,16 @@ export default function Show({ rachma, stats }: Props) {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {rachma.preview_images && rachma.preview_images.length > 0 ? (
+                  {rachma.preview_image_urls && rachma.preview_image_urls.length > 0 ? (
                     <div className="space-y-3">
                       {/* Main Image */}
                       <div className="relative group">
                         <div 
                           className="h-128 overflow-hidden rounded-2xl bg-muted border border-border/50 shadow-lg cursor-pointer"
-                          onClick={() => rachma.preview_images[selectedImageIndex] && window.open(rachma.preview_images[selectedImageIndex], '_blank')}
+                          onClick={() => rachma.preview_image_urls?.[selectedImageIndex] && window.open(rachma.preview_image_urls[selectedImageIndex], '_blank')}
                         >
                           <LazyImage
-                            src={rachma.preview_images[selectedImageIndex] || ''}
+                            src={rachma.preview_image_urls?.[selectedImageIndex] || ''}
                             alt={rachma.title_ar}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                             aspectRatio="4:3"
@@ -158,13 +157,13 @@ export default function Show({ rachma, stats }: Props) {
                         </div>
                       
                         <div className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-sm rounded-lg px-3 py-1 text-sm text-foreground">
-                          {selectedImageIndex + 1} / {rachma.preview_images.length}
+                          {selectedImageIndex + 1} / {rachma.preview_image_urls?.length || 0}
                         </div>
                       </div>
                       
                       {/* Thumbnail Gallery */}
                       <div className="grid grid-cols-4 gap-3">
-                        {rachma.preview_images.map((imageUrl: string, index: number) => (
+                        {(rachma.preview_image_urls || []).map((imageUrl: string, index: number) => (
                           <button
                             key={index}
                             onClick={() => setSelectedImageIndex(index)}
