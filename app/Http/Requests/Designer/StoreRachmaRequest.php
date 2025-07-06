@@ -26,45 +26,30 @@ class StoreRachmaRequest extends FormRequest
             'title_fr' => 'required|string|max:255',
             
             // Multilingual description support - both optional
-            'description_ar' => 'nullable|string|max:2000',
-            'description_fr' => 'nullable|string|max:2000',
+            'description_ar' => 'nullable|string',
+            'description_fr' => 'nullable|string',
             
             'categories' => 'required|array|min:1',
             'categories.*' => 'exists:categories,id',
             
-            // Only width and height, no size field
-            'width' => 'required|numeric|min:0|max:999999999.99',
-            'height' => 'required|numeric|min:0|max:99999999.99',
-            
-            'gharazat' => 'required|integer|min:1|max:10000000000',
-            'color_numbers' => 'required|integer|min:1|max:1000000000',
-            'price' => 'required|numeric|min:0|max:999999999.99',
+            'color_numbers' => 'required|integer|min:1',
+            'price' => 'required|numeric|min:0',
             
             // File validation - using new files structure with security restrictions
-            'files' => 'required|array|min:1|max:20',
-            'files.*' => [
-                'required',
-                'file',
-                'max:10240', // 10MB max
-                
-                'not_in:php,php3,php4,php5,php7,phtml,asp,aspx,jsp,exe,com,bat,cmd,scr,pif,reg,js,vbs,wsf,hta,jar,msi,msu,deb,rpm,app,apk,dmg,pkg,iso,bin,sh,bash,ps1,powershell,py,rb,pl,perl,lua,tcl,tk,swf,fla,air,apk,aab,xapk,ipa,appx,msix,appxbundle,msixbundle,exe,msi,msu,deb,rpm,app,dmg,pkg,iso,bin,sh,bash,ps1,powershell,py,rb,pl,perl,lua,tcl,tk,swf,fla,air,apk,aab,xapk,ipa,appx,msix,appxbundle,msixbundle',
-            ],
+            'files' => 'required|array|min:1',
+            'files.*' => 'required|file|mimes:zip,rar,dst,exp,jef,pes,vp3,xxx,hus,vip,sew,csd,pdf|max:10240',
             
             // Preview images validation
-            'preview_images' => 'nullable|array|max:10',
-            'preview_images.*' => [
-                'image',
-                'mimes:jpeg,png,jpg,webp',
-                'max:2048', // 2MB max
-            ],
+            'preview_images' => 'nullable|array',
+            'preview_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             
             // Parts validation - only multilingual names
-            'parts' => 'nullable|array|max:50',
+            'parts' => 'nullable|array',
             'parts.*.name_ar' => 'required|string|max:255',
             'parts.*.name_fr' => 'nullable|string|max:255',
             'parts.*.length' => 'nullable|numeric|min:0|max:9999.99',
             'parts.*.height' => 'nullable|numeric|min:0|max:9999.99',
-            'parts.*.stitches' => 'required|integer|min:1|max:1000000',
+            'parts.*.stitches' => 'required|integer|min:1',
         ];
     }
 
@@ -93,46 +78,27 @@ class StoreRachmaRequest extends FormRequest
             'categories.min' => 'يجب اختيار تصنيف واحد على الأقل',
             'categories.*.exists' => 'أحد التصنيفات المختارة غير صحيح',
             
-            // Size and dimensions validation
-            'width.numeric' => 'عرض الرشمة يجب أن يكون رقم',
-            'width.min' => 'عرض الرشمة يجب أن يكون أكبر من أو يساوي صفر',
-            'width.max' => 'عرض الرشمة يجب ألا يتجاوز 9999.99',
-            'height.numeric' => 'ارتفاع الرشمة يجب أن يكون رقم',
-            'height.min' => 'ارتفاع الرشمة يجب أن يكون أكبر من أو يساوي صفر',
-            'height.max' => 'ارتفاع الرشمة يجب ألا يتجاوز 9999.99',
-            
-            // Gharazat validation
-            'gharazat.required' => 'عدد الغرز مطلوب',
-            'gharazat.integer' => 'عدد الغرز يجب أن يكون رقم صحيح',
-            'gharazat.min' => 'عدد الغرز يجب أن يكون أكبر من صفر',
-            'gharazat.max' => 'عدد الغرز يجب ألا يتجاوز مليون غرزة',
-            
             // Color numbers validation
             'color_numbers.required' => 'عدد الألوان مطلوب',
             'color_numbers.integer' => 'عدد الألوان يجب أن يكون رقم صحيح',
             'color_numbers.min' => 'عدد الألوان يجب أن يكون أكبر من صفر',
-            'color_numbers.max' => 'عدد الألوان يجب ألا يتجاوز 100 لون',
             
             // Price validation
             'price.required' => 'سعر الرشمة مطلوب',
             'price.numeric' => 'سعر الرشمة يجب أن يكون رقم',
             'price.min' => 'سعر الرشمة يجب أن يكون أكبر من أو يساوي صفر',
-            'price.max' => 'سعر الرشمة يجب ألا يتجاوز 999,999.99',
             
             // Files validation
             'files.required' => 'يجب رفع ملف واحد على الأقل للرشمة',
             'files.array' => 'ملفات الرشمة يجب أن تكون قائمة',
             'files.min' => 'يجب رفع ملف واحد على الأقل للرشمة',
-            'files.max' => 'يمكن رفع 20 ملف كحد أقصى',
             'files.*.required' => 'الملف مطلوب',
             'files.*.file' => 'يجب أن يكون ملف صالح',
-            'files.*.max' => 'حجم الملف يجب ألا يتجاوز 10 ميجابايت',
             'files.*.mimes' => 'نوع الملف غير مدعوم. الأنواع المدعومة: ZIP, RAR, DST, EXP, JEF, PES, VP3, XXX, HUS, VIP, SEW, CSD, PDF',
             'files.*.not_in' => 'نوع الملف غير مسموح به لأسباب أمنية. يرجى رفع ملفات الرشمة المدعومة فقط',
             
             // Preview images validation
             'preview_images.array' => 'صور المعاينة يجب أن تكون قائمة',
-            'preview_images.max' => 'يمكن رفع 10 صور معاينة كحد أقصى',
             'preview_images.*.image' => 'يجب أن يكون ملف صورة صالح',
             'preview_images.*.mimes' => 'نوع الصورة غير مدعوم. الأنواع المدعومة: JPEG, PNG, JPG, WEBP',
             'preview_images.*.max' => 'حجم الصورة يجب ألا يتجاوز 2 ميجابايت',
@@ -140,7 +106,6 @@ class StoreRachmaRequest extends FormRequest
             
             // Parts validation
             'parts.array' => 'أجزاء الرشمة يجب أن تكون قائمة',
-            'parts.max' => 'يمكن إضافة 50 جزء كحد أقصى',
             'parts.*.name_ar.required' => 'اسم الجزء مطلوب',
             'parts.*.name_ar.string' => 'اسم الجزء يجب أن يكون نص',
             'parts.*.name_ar.max' => 'اسم الجزء يجب ألا يتجاوز 255 حرف',
@@ -153,7 +118,6 @@ class StoreRachmaRequest extends FormRequest
             'parts.*.stitches.required' => 'عدد الغرز مطلوب لكل جزء',
             'parts.*.stitches.integer' => 'عدد الغرز يجب أن يكون رقم صحيح',
             'parts.*.stitches.min' => 'عدد الغرز يجب أن يكون أكبر من صفر',
-            'parts.*.stitches.max' => 'عدد الغرز يجب ألا يتجاوز مليون غرزة',
         ];
     }
 
@@ -164,11 +128,10 @@ class StoreRachmaRequest extends FormRequest
     {
         return [
             'title_ar' => 'عنوان الرشمة',
+            'title_fr' => 'عنوان الرشمة بالفرنسية',
             'description_ar' => 'وصف الرشمة',
+            'description_fr' => 'وصف الرشمة بالفرنسية',
             'categories' => 'التصنيفات',
-            'width' => 'عرض الرشمة',
-            'height' => 'ارتفاع الرشمة',
-            'gharazat' => 'عدد الغرز',
             'color_numbers' => 'عدد الألوان',
             'price' => 'السعر',
             'files' => 'ملفات الرشمة',

@@ -253,6 +253,7 @@ class RachmatControllerTest extends TestCase
         $response->assertInertia(fn ($page) => 
             $page->component('Designer/Rachmat/Show')
                 ->has('rachma')
+                ->has('stats')
         );
     }
 
@@ -266,89 +267,6 @@ class RachmatControllerTest extends TestCase
 
         $response = $this->actingAs($this->user)
             ->get(route('designer.rachmat.show', $rachma));
-
-        $response->assertStatus(403);
-    }
-
-    /** @test */
-    public function designer_can_access_edit_page_for_own_rachma()
-    {
-        Category::factory()->count(2)->create();
-        
-        $rachma = Rachma::factory()->create([
-            'designer_id' => $this->activeDesigner->id,
-        ]);
-
-        $response = $this->actingAs($this->user)
-            ->get(route('designer.rachmat.edit', $rachma));
-
-        $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->component('Designer/Rachmat/Edit')
-                ->has('rachma')
-                ->has('categories')
-        );
-    }
-
-    /** @test */
-    public function designer_cannot_edit_others_rachma()
-    {
-        $otherDesigner = Designer::factory()->create();
-        $rachma = Rachma::factory()->create([
-            'designer_id' => $otherDesigner->id,
-        ]);
-
-        $response = $this->actingAs($this->user)
-            ->get(route('designer.rachmat.edit', $rachma));
-
-        $response->assertStatus(403);
-    }
-
-    /** @test */
-    public function designer_can_update_own_rachma()
-    {
-        $categories = Category::factory()->count(2)->create();
-        
-        $rachma = Rachma::factory()->create([
-            'designer_id' => $this->activeDesigner->id,
-            'title' => 'العنوان القديم',
-        ]);
-
-        $formData = [
-            'title' => 'العنوان الجديد',
-            'description' => 'وصف محدث',
-            'categories' => $categories->pluck('id')->toArray(),
-            'size' => '15x15 cm',
-            'gharazat' => 6000,
-            'color_numbers' => 10,
-            'price' => 75.00,
-        ];
-
-        $response = $this->actingAs($this->user)
-            ->put(route('designer.rachmat.update', $rachma), $formData);
-
-        $response->assertRedirect(route('designer.rachmat.show', $rachma));
-        $response->assertSessionHas('success');
-
-        $this->assertDatabaseHas('rachmat', [
-            'id' => $rachma->id,
-            'title' => 'العنوان الجديد',
-            'price' => 75.00,
-        ]);
-    }
-
-    /** @test */
-    public function designer_cannot_update_others_rachma()
-    {
-        $otherDesigner = Designer::factory()->create();
-        $rachma = Rachma::factory()->create([
-            'designer_id' => $otherDesigner->id,
-        ]);
-
-        $response = $this->actingAs($this->user)
-            ->put(route('designer.rachmat.update', $rachma), [
-                'title' => 'محاولة تحديث',
-            ]);
 
         $response->assertStatus(403);
     }

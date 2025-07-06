@@ -85,8 +85,6 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::prefix('rachmat')->name('rachmat.')->group(function () {
         Route::get('/', [AdminRachmatController::class, 'index'])->name('index');
         Route::get('/{rachma}', [AdminRachmatController::class, 'show'])->name('show');
-        Route::get('/{rachma}/edit', [AdminRachmatController::class, 'edit'])->name('edit');
-        Route::put('/{rachma}', [AdminRachmatController::class, 'update'])->name('update');
         Route::delete('/{rachma}', [AdminRachmatController::class, 'destroy'])->name('destroy');
         Route::delete('/{rachma}/force', [AdminRachmatController::class, 'forceDestroy'])->name('force-destroy');
 
@@ -131,12 +129,11 @@ Route::middleware(['auth', 'verified'])->prefix('designer')->name('designer.')->
     
     // Temporary testing routes without subscription middleware
     Route::get('/rachmat/test/{rachma}', [DesignerRachmaController::class, 'show'])->name('rachmat.test-show');
-    Route::get('/rachmat/test/{rachma}/edit', [DesignerRachmaController::class, 'edit'])->name('rachmat.test-edit');
 
     // Protected routes requiring active subscription
     Route::middleware(['designer.subscription'])->group(function () {
         // Rachma management (requires active subscription)
-        Route::resource('rachmat', DesignerRachmaController::class);
+        Route::resource('rachmat', DesignerRachmaController::class)->except(['edit', 'update']);
 
         // Rachma file download routes
         Route::get('/rachmat/{rachma}/download', [DesignerRachmaController::class, 'downloadFile'])->name('rachmat.download');

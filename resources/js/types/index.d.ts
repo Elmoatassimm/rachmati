@@ -156,40 +156,21 @@ export interface RachmaFile {
 export interface Rachma {
     id: number;
     designer_id: number;
-    title: string;
-    title_ar?: string;
-    title_fr?: string;
-    description?: string;
-    description_ar?: string;
-    description_fr?: string;
-    file_path?: string; // Kept for backward compatibility
-    files?: RachmaFile[]; // New multiple files support
-    preview_images: string[];
-    preview_image_urls?: string[]; // Computed URLs for preview images
-    size?: string;
-    width?: number;
-    height?: number;
-    gharazat: number;
+    title_ar: string;
+    title_fr: string;
+    description_ar: string;
+    description_fr: string;
     color_numbers: string[];
     price: number;
-    original_price: number;
+    preview_images: string[];
+    files: RachmaFile[];
+    file_path: string;
     average_rating: number;
     ratings_count: number;
-    ratings_avg_rating?: number; // Laravel withAvg result
-    is_active?: boolean;
+    orders_count?: number;
+    is_active: boolean;
     created_at: string;
     updated_at: string;
-    designer?: Designer;
-    categories?: Category[];
-    orders?: Order[];
-    orders_count?: number;
-    parts?: Part[];
-    ratings?: Rating[];
-    comments?: Comment[];
-    localized_title?: string;
-    localized_description?: string;
-    formatted_size?: string;
-    dimensions?: { width?: number; height?: number };
 }
 
 export interface Part {

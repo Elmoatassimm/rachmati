@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class RachmatController extends Controller
@@ -302,63 +303,6 @@ class RachmatController extends Controller
             'Content-Type' => $mimeType,
             'Cache-Control' => 'public, max-age=3600',
         ]);
-    }
-
-    /**
-     * Show the form for editing the specified rachma
-     */
-    public function edit(Rachma $rachma)
-    {
-        $rachma->load(['designer.user', 'categories', 'parts']);
-
-        $categories = Category::orderBy('name')->get();
-
-        return Inertia::render('Admin/Rachmat/Edit', [
-            'rachma' => $rachma,
-            'categories' => $categories,
-        ]);
-    }
-
-    /**
-     * Update the specified rachma
-     */
-    public function update(Request $request, Rachma $rachma)
-    {
-        $request->validate([
-            'title_ar' => 'required|string|max:255',
-            'title_fr' => 'nullable|string|max:255',
-            'description_ar' => 'nullable|string',
-            'description_fr' => 'nullable|string',
-            'categories' => 'required|array|min:1',
-            'categories.*' => 'exists:categories,id',
-            'width' => 'nullable|numeric|min:0|max:9999.99',
-            'height' => 'nullable|numeric|min:0|max:9999.99',
-            'gharazat' => 'required|integer|min:1',
-            'color_numbers' => 'required|integer|min:1',
-            'price' => 'required|numeric|min:0',
-        ], [
-            'title_ar.required' => 'عنوان الرشمة مطلوب',
-            'categories.required' => 'يجب اختيار تصنيف واحد على الأقل',
-            'categories.min' => 'يجب اختيار تصنيف واحد على الأقل',
-        ]);
-
-        $rachma->update([
-            'title_ar' => $request->title_ar,
-            'title_fr' => $request->title_fr,
-            'description_ar' => $request->description_ar,
-            'description_fr' => $request->description_fr,
-            'width' => $request->width,
-            'height' => $request->height,
-            'gharazat' => $request->gharazat,
-            'color_numbers' => $request->color_numbers,
-            'price' => $request->price,
-        ]);
-
-        // Update categories
-        $rachma->categories()->sync($request->categories);
-
-        return redirect()->route('admin.rachmat.show', $rachma)
-                        ->with('success', 'تم تحديث الرشمة بنجاح');
     }
 
     /**

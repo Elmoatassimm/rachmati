@@ -42,12 +42,11 @@ Route::get('/designers/{id}', [RachmatController::class, 'designer']);
 // Parts suggestions
 Route::get('/parts-suggestions', [RachmatController::class, 'partsSuggestions']);
 
-
 // Public admin payment info (for mobile app)
 Route::get('/admin-payment-info', [AdminPaymentInfoController::class, 'index']);
 
 // Telegram webhook (public endpoint - no auth required)
-Route::post( '/telegram/webhook', [TelegramWebhookController::class, 'webhook']);
+Route::post('/telegram/webhook', [TelegramWebhookController::class, 'webhook']);
 Route::get('/telegram/health', [TelegramWebhookController::class, 'health']);
 
 // Protected routes (JWT Auth - Clients only)

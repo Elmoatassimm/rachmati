@@ -29,6 +29,7 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'user_type' => 'client',
         ];
     }
 
@@ -39,6 +40,26 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    /**
+     * Set the user type to designer.
+     */
+    public function designer(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'user_type' => 'designer',
+        ]);
+    }
+
+    /**
+     * Set the user type to admin.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'user_type' => 'admin',
         ]);
     }
 }

@@ -263,58 +263,15 @@ export default function Show({ rachma, fileInfo, filesInfo, previewImagesInfo }:
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      {/* Basic Info */}
-                      <div className="space-y-3">
-                        <div className="space-y-4">
-                          <div>
-                            <label className="text-sm font-medium text-muted-foreground mb-1 block">العنوان بالعربية</label>
-                            <h2 className="text-2xl font-bold text-foreground">{rachma.title_ar || rachma.title}</h2>
-                          </div>
-                          {(rachma.title_fr || rachma.title !== rachma.title_ar) && (
-                            <div>
-                              <label className="text-sm font-medium text-muted-foreground mb-1 block">العنوان بالفرنسية</label>
-                              <h3 className="text-xl font-semibold text-foreground">{rachma.title_fr || rachma.title}</h3>
-                            </div>
-                          )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="text-sm font-medium text-muted-foreground">عدد الألوان</h4>
+                          <p className="text-lg font-semibold">{rachma.color_numbers}</p>
                         </div>
-                        
-                        <div className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20">
-                          <label className="text-sm font-medium text-muted-foreground mb-2 block">السعر</label>
-                          <p className="text-3xl font-bold text-primary">{formatPrice(rachma.price)}</p>
-                        </div>
-                      </div>
-                      
-                      {/* Technical Specs */}
-                      <div className="space-y-3">
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="p-4 bg-gradient-to-br from-blue-500/5 to-blue-500/10 rounded-xl border border-blue-500/20">
-                            <label className="text-sm font-medium text-muted-foreground mb-1 block">العرض</label>
-                            <p className="text-xl font-bold text-foreground flex items-center gap-2">
-                              <Ruler className="h-5 w-5 text-blue-600" />
-                              {rachma.width} سم
-                            </p>
-                          </div>
-                          <div className="p-4 bg-gradient-to-br from-green-500/5 to-green-500/10 rounded-xl border border-green-500/20">
-                            <label className="text-sm font-medium text-muted-foreground mb-1 block">الارتفاع</label>
-                            <p className="text-xl font-bold text-foreground flex items-center gap-2">
-                              <Ruler className="h-5 w-5 text-green-600" />
-                              {rachma.height} سم
-                            </p>
-                          </div>
-                        </div>
-                        
-                        <div className="p-4 bg-gradient-to-br from-purple-500/5 to-purple-500/10 rounded-xl border border-purple-500/20">
-                          <label className="text-sm font-medium text-muted-foreground mb-1 block">عدد الغرزات</label>
-                          <p className="text-xl font-bold text-foreground">{rachma.gharazat?.toLocaleString('ar-DZ')}</p>
-                        </div>
-                        
-                        <div className="p-4 bg-gradient-to-br from-orange-500/5 to-orange-500/10 rounded-xl border border-orange-500/20">
-                          <label className="text-sm font-medium text-muted-foreground mb-1 block">عدد الألوان</label>
-                          <p className="text-xl font-bold text-foreground flex items-center gap-2">
-                            <Palette className="h-5 w-5 text-orange-600" />
-                            {rachma.color_numbers}
-                          </p>
+                        <div>
+                          <h4 className="text-sm font-medium text-muted-foreground">السعر</h4>
+                          <p className="text-lg font-semibold">{rachma.price} دج</p>
                         </div>
                       </div>
                     </div>

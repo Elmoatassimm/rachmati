@@ -17,25 +17,15 @@ class Rachma extends Model
 
     protected $fillable = [
         'designer_id',
-      
         'title_ar',
         'title_fr',
-       
         'description_ar',
         'description_fr',
-        'file_path',
-        'files',
-        'preview_images',
-    
-        'width',
-        'height',
-        'gharazat',
         'color_numbers',
         'price',
-        'original_price',
-        
-        'average_rating',
-        'ratings_count',
+        'preview_images',
+        'files',
+        'file_path',
     ];
 
     protected $casts = [
@@ -43,8 +33,6 @@ class Rachma extends Model
         'files' => 'array',
         'color_numbers' => 'array',
         'price' => 'decimal:2',
-        'original_price' => 'decimal:2',
-        'average_rating' => 'decimal:2',
         'width' => 'decimal:2',
         'height' => 'decimal:2',
     ];

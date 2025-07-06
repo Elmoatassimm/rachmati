@@ -39,7 +39,6 @@ class MultilingualModelsTest extends TestCase
             'gharazat' => 10000,
             'color_numbers' => ['001'],
             'price' => 5000,
-            'original_price' => 5000,
         ]);
 
         // Test Arabic locale
@@ -75,7 +74,6 @@ class MultilingualModelsTest extends TestCase
             'gharazat' => 10000,
             'color_numbers' => ['001'],
             'price' => 5000,
-            'original_price' => 5000,
         ]);
 
         $this->assertEquals('30 x 40 cm', $rachma->formatted_size);
@@ -97,7 +95,6 @@ class MultilingualModelsTest extends TestCase
             'gharazat' => 10000,
             'color_numbers' => ['001'],
             'price' => 5000,
-            'original_price' => 5000,
         ]);
 
         $this->assertEquals('25x35 cm', $rachma->formatted_size);
@@ -201,7 +198,6 @@ class MultilingualModelsTest extends TestCase
             'gharazat' => 10000,
             'color_numbers' => ['001'],
             'price' => 5000,
-            'original_price' => 5000,
         ]);
 
         // Should fallback to Arabic even when requesting French
@@ -226,7 +222,6 @@ class MultilingualModelsTest extends TestCase
             'gharazat' => 10000,
             'color_numbers' => ['001'],
             'price' => 5000,
-            'original_price' => 5000,
         ]);
 
         // The title attribute should return Arabic version

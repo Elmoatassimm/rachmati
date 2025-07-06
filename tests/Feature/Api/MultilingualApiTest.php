@@ -49,31 +49,15 @@ class MultilingualApiTest extends TestCase
         // Create rachma with multilingual content
         $rachma = Rachma::create([
             'designer_id' => $designer->id,
-            'title' => 'Test Rachma',
-            'title_ar' => 'رشمة تجريبية',
-            'title_fr' => 'Rachmat de Test',
-            'description' => 'Test description',
-            'description_ar' => 'وصف تجريبي',
-            'description_fr' => 'Description de test',
-            'file_path' => 'test/file.dst',
-            'files' => [
-                [
-                    'id' => 1,
-                    'path' => 'test/file.dst',
-                    'original_name' => 'test.dst',
-                    'format' => 'DST',
-                    'is_primary' => true,
-                    'uploaded_at' => now(),
-                ]
-            ],
-            'preview_images' => ['test1.jpg', 'test2.jpg'],
-            'size' => '20x25 cm',
-            'width' => 20,
-            'height' => 25,
-            'gharazat' => 10000,
-            'color_numbers' => ['001', '002', '003'],
+            'title_ar' => 'عنوان عربي',
+            'title_fr' => 'Titre en français',
+            'description_ar' => 'وصف عربي',
+            'description_fr' => 'Description en français',
+            'color_numbers' => ['001', '002'],
             'price' => 5000,
-            'original_price' => 5000,
+            'preview_images' => ['image1.jpg', 'image2.jpg'],
+            'files' => ['file1.pdf', 'file2.pdf'],
+            'file_path' => 'path/to/file.pdf',
             'is_active' => true,
         ]);
 

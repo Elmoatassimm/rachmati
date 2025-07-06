@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
+use Carbon\Carbon;
 
 class EnsureDesignerSubscription
 {
@@ -37,17 +38,55 @@ class EnsureDesignerSubscription
         
         // Check if designer profile exists
         if (!$designer) {
-            $fallbackRoute = $redirectRoute ?? 'designer.dashboard';
-            return redirect()->route($fallbackRoute)
+            return redirect()->route('dashboard')
                 ->with('error', 'لم يتم العثور على ملف المصمم');
         }
 
+        // Update subscription status based on end date
+        $this->updateSubscriptionStatus($designer);
+
         // Check subscription status with grace period
         if (!$this->hasValidSubscription($designer, $gracePeriodDays)) {
-            return $this->handleInvalidSubscription($designer, $gracePeriodDays, $redirectRoute);
+            return $this->handleInvalidSubscription($designer, $gracePeriodDays, $redirectRoute, $request, $next);
+        }
+
+        // Add warning for near-expiry subscriptions
+        if ($designer->subscription_status === 'active' && $designer->subscription_end_date) {
+            $endDate = Carbon::parse($designer->subscription_end_date);
+            $daysLeft = Carbon::now()->diffInDays($endDate);
+
+            if ($daysLeft <= 7) {
+                session()->flash('warning', "اشتراكك سينتهي خلال {$daysLeft} أيام");
+            }
         }
 
         return $next($request);
+    }
+
+    /**
+     * Update subscription status based on end date
+     */
+    private function updateSubscriptionStatus($designer): void
+    {
+        // Skip if no end date or status is pending
+        if (!$designer->subscription_end_date || $designer->subscription_status === 'pending') {
+            return;
+        }
+
+        $now = Carbon::now();
+        $endDate = Carbon::parse($designer->subscription_end_date);
+
+        if ($now->gt($endDate)) {
+            // Subscription has expired
+            if ($designer->subscription_status !== 'expired') {
+                $designer->subscription_status = 'expired';
+                $designer->save();
+            }
+        } elseif ($designer->subscription_status !== 'active') {
+            // Active subscription
+            $designer->subscription_status = 'active';
+            $designer->save();
+        }
     }
 
     /**
@@ -55,84 +94,60 @@ class EnsureDesignerSubscription
      */
     private function hasValidSubscription($designer, ?string $gracePeriodDays): bool
     {
-        // If subscription is active and not expired
-        if ($designer->hasActiveSubscription()) {
+        // If subscription is active
+        if ($designer->subscription_status === 'active') {
             return true;
+        }
+
+        // If subscription is pending
+        if ($designer->subscription_status === 'pending') {
+            return false;
         }
 
         // If grace period is specified and subscription recently expired
         if ($gracePeriodDays && $designer->subscription_status === 'expired' && $designer->subscription_end_date) {
             $gracePeriod = (int) $gracePeriodDays;
-            $graceEndDate = $designer->subscription_end_date->addDays($gracePeriod);
+            $graceEndDate = Carbon::parse($designer->subscription_end_date)->addDays($gracePeriod);
             
-            return now()->lte($graceEndDate);
+            return Carbon::now()->lte($graceEndDate);
         }
 
         return false;
     }
 
     /**
-     * Get appropriate message based on subscription status
-     */
-    private function getSubscriptionMessage($designer, ?string $gracePeriodDays): string
-    {
-        return match($designer->subscription_status) {
-            'pending' => 'اشتراكك قيد المراجعة. يرجى انتظار موافقة الإدارة',
-            'expired' => $this->getExpiredMessage($designer, $gracePeriodDays),
-            default => 'يجب تفعيل الاشتراك للوصول لهذه الصفحة'
-        };
-    }
-
-    /**
      * Handle invalid subscription by redirecting to appropriate page
      */
-    private function handleInvalidSubscription($designer, ?string $gracePeriodDays, ?string $redirectRoute)
+    private function handleInvalidSubscription($designer, ?string $gracePeriodDays, ?string $redirectRoute, Request $request, Closure $next)
     {
-        return match($designer->subscription_status) {
-            'pending' => redirect()->route('designer.subscription.pending'),
-            'expired' => $this->handleExpiredSubscription($designer, $gracePeriodDays, $redirectRoute),
-            default => redirect()->route('designer.subscription.request')
-                ->with('info', 'يجب الاشتراك للوصول لهذه الصفحة')
-        };
-    }
-
-    /**
-     * Handle expired subscription with grace period consideration
-     */
-    private function handleExpiredSubscription($designer, ?string $gracePeriodDays, ?string $redirectRoute)
-    {
-        // Check if within grace period
-        if ($gracePeriodDays && $designer->subscription_end_date) {
-            $gracePeriod = (int) $gracePeriodDays;
-            $graceEndDate = $designer->subscription_end_date->addDays($gracePeriod);
-            
-            if (now()->lte($graceEndDate)) {
-                $remainingDays = now()->diffInDays($graceEndDate);
-                $fallbackRoute = $redirectRoute ?? 'designer.dashboard';
-                return redirect()->route($fallbackRoute)
-                    ->with('warning', "انتهت صلاحية اشتراكك. يمكنك الوصول لهذه الصفحة لمدة {$remainingDays} أيام أخرى");
-            }
+        if ($designer->subscription_status === 'pending') {
+            return redirect()->route('designer.subscription.pending')
+                ->with('info', 'اشتراكك قيد المراجعة. يرجى انتظار موافقة الإدارة');
         }
 
-        return redirect()->route('designer.subscription.request')
-            ->with('error', 'انتهت صلاحية اشتراكك. يرجى تجديد الاشتراك للمتابعة');
-    }
-
-    /**
-     * Get expired subscription message
-     */
-    private function getExpiredMessage($designer, ?string $gracePeriodDays): string
-    {
-        if ($gracePeriodDays && $designer->subscription_end_date) {
-            $gracePeriod = (int) $gracePeriodDays;
-            $graceEndDate = $designer->subscription_end_date->addDays($gracePeriod);
-            
-            if (now()->lte($graceEndDate)) {
-                $remainingDays = now()->diffInDays($graceEndDate);
-                return "انتهت صلاحية اشتراكك. يمكنك الوصول لهذه الصفحة لمدة {$remainingDays} أيام أخرى";
+        if ($designer->subscription_status === 'expired') {
+            // Check if within grace period
+            if ($gracePeriodDays && $designer->subscription_end_date) {
+                $gracePeriod = (int) $gracePeriodDays;
+                $graceEndDate = Carbon::parse($designer->subscription_end_date)->addDays($gracePeriod);
+                
+                if (Carbon::now()->lte($graceEndDate)) {
+                    $remainingDays = Carbon::now()->diffInDays($graceEndDate);
+                    session()->flash('warning', "انتهت صلاحية اشتراكك. يمكنك الوصول لهذه الصفحة لمدة {$remainingDays} أيام أخرى");
+                    return $next($request);
+                }
             }
+
+            // If redirect route is specified, use it
+            if ($redirectRoute) {
+                return redirect()->route($redirectRoute);
+            }
+
+            return redirect()->route('designer.subscription-requests.create')
+                ->with('error', 'انتهت صلاحية اشتراكك. يرجى تجديد الاشتراك للمتابعة');
         }
 
-        return 'انتهت صلاحية اشتراكك. يرجى تجديد الاشتراك للمتابعة';
+        return redirect()->route('designer.subscription-requests.create')
+            ->with('error', 'يجب الاشتراك للوصول لهذه الصفحة');
     }
 } 

@@ -19,24 +19,21 @@ class RachmaFactory extends Factory
      */
     public function definition(): array
     {
-        $price = fake()->randomFloat(2, 2000, 20000);
+        $price = fake()->numberBetween(2500, 25000);
         
         return [
             'designer_id' => Designer::factory(),
-            'title' => fake('ar_SA')->sentence(3),
-            'description' => fake('ar_SA')->paragraph(),
-            'file_path' => '/rachmat/files/' . fake()->uuid() . '.pdf',
-            'preview_images' => [
-                '/images/preview1.jpg',
-                '/images/preview2.jpg',
-            ],
-            'size' => fake()->randomElement(['20x25 cm', '25x30 cm', '30x35 cm', '35x40 cm']),
-            'gharazat' => fake()->numberBetween(8000, 25000),
-            'color_numbers' => ['001', '002', '025', '150', '208'],
+            'title_ar' => fake()->sentence(),
+            'title_fr' => fake()->sentence(),
+            'description_ar' => fake()->paragraph(),
+            'description_fr' => fake()->paragraph(),
+            'color_numbers' => fake()->numberBetween(1, 10),
             'price' => $price,
-            'original_price' => $price,
-            'average_rating' => fake()->randomFloat(1, 3.0, 5.0),
-            'ratings_count' => fake()->numberBetween(0, 50),
+            'preview_images' => null,
+            'files' => null,
+            'file_path' => null,
+            'average_rating' => null,
+            'ratings_count' => 0,
             'is_active' => true,
         ];
     }

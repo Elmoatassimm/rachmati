@@ -93,7 +93,6 @@ class FatimaRachmatSeeder extends Seeder
             'gharazat' => rand(8000, 35000),
             'color_numbers' => $this->getRandomColors(),
             'price' => rand(2500, 25000),
-            'original_price' => rand(2500, 25000),
             'average_rating' => round(rand(35, 50) / 10, 1),
             'ratings_count' => rand(1, 25),
             'created_at' => now()->subDays(rand(0, 90)),

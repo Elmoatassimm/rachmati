@@ -8,9 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Plus, Minus, ChevronDown, FileText, Package, Image as ImageIcon, Sparkles, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Plus, Minus, ChevronDown, FileText, Package, Image as ImageIcon, Sparkles, ArrowRight, AlertTriangle } from 'lucide-react';
 import { Category, PageProps, PartsSuggestion } from '@/types';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Props extends PageProps {
   categories: Category[];
@@ -54,9 +55,6 @@ export default function Create({ categories, partsSuggestions = [] }: Props) {
     description_ar: string;
     description_fr: string;
     categories: number[];
-    width: string;
-    height: string;
-    gharazat: string;
     color_numbers: string;
     price: string;
     files: File[];
@@ -68,9 +66,6 @@ export default function Create({ categories, partsSuggestions = [] }: Props) {
     description_ar: '',
     description_fr: '',
     categories: [],
-    width: '',
-    height: '',
-    gharazat: '',
     color_numbers: '',
     price: '',
     files: [],
@@ -94,7 +89,7 @@ export default function Create({ categories, partsSuggestions = [] }: Props) {
   const isCurrentStepValid = () => {
     switch (currentStep) {
       case 1:
-        return data.title_ar && data.title_fr && data.categories.length > 0 && data.width && data.height && data.gharazat && data.color_numbers && data.price;
+        return data.title_ar && data.title_fr && data.categories.length > 0 && data.color_numbers && data.price;
       case 2:
         return parts.every(part => part.name_ar && part.name_fr && part.length && part.height && part.stitches);
       case 3:
@@ -118,7 +113,15 @@ export default function Create({ categories, partsSuggestions = [] }: Props) {
     }
   };
 
-
+  // Add warning message component
+  const WarningMessage = () => (
+    <Alert variant="warning" className="mb-6">
+      <AlertTriangle className="h-4 w-4" />
+      <AlertDescription>
+        تنبيه: لا يمكن تعديل الرشمة بعد إنشائها. يرجى التأكد من صحة جميع المعلومات قبل الحفظ.
+      </AlertDescription>
+    </Alert>
+  );
 
   // Fetch parts suggestions if not provided
   useEffect(() => {
@@ -243,9 +246,6 @@ export default function Create({ categories, partsSuggestions = [] }: Props) {
     formData.append('title_fr', data.title_fr);
     formData.append('description_ar', data.description_ar);
     formData.append('description_fr', data.description_fr);
-    formData.append('width', data.width);
-    formData.append('height', data.height);
-    formData.append('gharazat', data.gharazat);
     formData.append('color_numbers', data.color_numbers);
     formData.append('price', data.price);
 
@@ -372,6 +372,9 @@ export default function Create({ categories, partsSuggestions = [] }: Props) {
           {/* Step Indicator */}
           {renderStepIndicator()}
 
+          {/* Warning Message */}
+          <WarningMessage />
+
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Step 1: Basic Information */}
             {currentStep === 1 && (
@@ -438,51 +441,7 @@ export default function Create({ categories, partsSuggestions = [] }: Props) {
                     {errors.categories && <p className="text-sm text-destructive mt-1">{errors.categories}</p>}
                   </div>
                   
-                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                     <div className="space-y-2">
-                       <Label htmlFor="width" className="font-semibold">العرض (سم) *</Label>
-                       <Input
-                         type="number"
-                         id="width"
-                         value={data.width}
-                         onChange={handleChange}
-                         placeholder="مثال: 10"
-                         min="0"
-                         step="0.1"
-                         className="h-11"
-                       />
-                       {errors.width && <p className="text-sm text-destructive mt-1">{errors.width}</p>}
-                     </div>
-
-                     <div className="space-y-2">
-                       <Label htmlFor="height" className="font-semibold">الطول (سم) *</Label>
-                       <Input
-                         type="number"
-                         id="height"
-                         value={data.height}
-                         onChange={handleChange}
-                         placeholder="مثال: 15"
-                         min="0"
-                         step="0.1"
-                         className="h-11"
-                       />
-                       {errors.height && <p className="text-sm text-destructive mt-1">{errors.height}</p>}
-                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="gharazat" className="font-semibold">عدد الغرز *</Label>
-                      <Input
-                        type="number"
-                        id="gharazat"
-                        value={data.gharazat}
-                        onChange={handleChange}
-                        placeholder="مثال: 5000"
-                        min="1"
-                        className="h-11"
-                      />
-                      {errors.gharazat && <p className="text-sm text-destructive mt-1">{errors.gharazat}</p>}
-                    </div>
-
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="color_numbers" className="font-semibold">عدد الألوان *</Label>
                       <Input
@@ -490,21 +449,21 @@ export default function Create({ categories, partsSuggestions = [] }: Props) {
                         id="color_numbers"
                         value={data.color_numbers}
                         onChange={handleChange}
-                        placeholder="مثال: 8"
+                        placeholder="مثال: 5"
                         min="1"
                         className="h-11"
                       />
                       {errors.color_numbers && <p className="text-sm text-destructive mt-1">{errors.color_numbers}</p>}
                     </div>
 
-                    <div className="lg:col-span-2 space-y-2">
-                      <Label htmlFor="price" className="font-semibold">السعر بالدينار *</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="price" className="font-semibold">السعر *</Label>
                       <Input
                         type="number"
                         id="price"
                         value={data.price}
                         onChange={handleChange}
-                        placeholder="مثال: 500"
+                        placeholder="مثال: 50"
                         min="0"
                         step="0.01"
                         className="h-11"

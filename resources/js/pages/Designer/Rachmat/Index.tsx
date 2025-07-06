@@ -28,7 +28,8 @@ import {
   List,
   ChevronLeft,
   ChevronRight,
-  Users
+  Users,
+  Trash2
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -347,11 +348,16 @@ console.log(rachmat);
                                     عرض التفاصيل
                                   </Link>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                  <Link href={route('designer.rachmat.edit', rachma.id)}>
-                                    <Edit className="ml-2 h-4 w-4" />
-                                    تعديل
-                                  </Link>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    if (confirm('هل أنت متأكد من حذف هذه الرشمة؟')) {
+                                      router.delete(route('designer.rachmat.destroy', rachma.id));
+                                    }
+                                  }}
+                                  className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                                >
+                                  <Trash2 className="ml-2 h-4 w-4" />
+                                  حذف
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -439,12 +445,19 @@ console.log(rachmat);
                                   عرض
                                 </Button>
                               </Link>
-                              <Link href={route('designer.rachmat.edit', rachma.id)} className="flex-1">
-                                <Button size="sm" className="w-full h-7 text-xs group">
-                                  <Edit className="ml-1 h-3 w-3 group-hover:scale-110 transition-transform" />
-                                  تعديل
-                                </Button>
-                              </Link>
+                              <Button 
+                                variant="destructive" 
+                                size="sm" 
+                                className="w-full h-7 text-xs group"
+                                onClick={() => {
+                                  if (confirm('هل أنت متأكد من حذف هذه الرشمة؟')) {
+                                    router.delete(route('designer.rachmat.destroy', rachma.id));
+                                  }
+                                }}
+                              >
+                                <Trash2 className="ml-1 h-3 w-3 group-hover:scale-110 transition-transform" />
+                                حذف
+                              </Button>
                             </div>
                           </div>
                         </CardContent>

@@ -121,9 +121,8 @@ class RachmatSeeder extends Seeder
         $description = $this->generateDescription($title);
         $frenchTitle = $this->generateFrenchTitle($title);
         $frenchDescription = $this->generateFrenchDescription($description);
-        $dimensions = $this->getRandomDimensions();
-
-        $rachma = \App\Models\Rachma::create([
+      
+        $rachma = Rachma::create([
             'designer_id' => $designer->id,
             'title_ar' => $title,
             'title_fr' => $frenchTitle,
@@ -131,14 +130,9 @@ class RachmatSeeder extends Seeder
             'description_fr' => $frenchDescription,
             'files' => $files,
             'preview_images' => $this->createPreviewImages(1),
-            'width' => $dimensions['width'],
-            'height' => $dimensions['height'],
-            'gharazat' => rand(8000, 25000),
             'color_numbers' => $this->getRandomColors(),
             'price' => $data['price'],
-            'original_price' => $data['price'],
-            'average_rating' => round(rand(35, 50) / 10, 1),
-            'ratings_count' => rand(3, 20),
+            'is_active' => true,
         ]);
 
         // Attach category using many-to-many relationship
@@ -259,31 +253,6 @@ class RachmatSeeder extends Seeder
         return "Design magnifique et distinctif avec une haute qualité et des détails précis qui conviennent à tous les goûts et occasions";
     }
 
-    /**
-     * Get random dimensions with size string
-     */
-    private function getRandomDimensions(): array
-    {
-        $dimensions = [
-            ['width' => 15, 'height' => 20],
-            ['width' => 20, 'height' => 25],
-            ['width' => 25, 'height' => 30],
-            ['width' => 30, 'height' => 35],
-            ['width' => 35, 'height' => 40],
-            ['width' => 40, 'height' => 45],
-            ['width' => 45, 'height' => 50],
-            ['width' => 50, 'height' => 55],
-            ['width' => 55, 'height' => 60],
-            ['width' => 60, 'height' => 65],
-        ];
-
-        $dimension = $dimensions[array_rand($dimensions)];
-
-        return [
-            'width' => $dimension['width'],
-            'height' => $dimension['height'],
-        ];
-    }
 
     private function getRandomColors(): array
     {
