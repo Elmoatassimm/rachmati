@@ -5,7 +5,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTable, DataTableColumnHeader, DataTableRowActions } from '@/components/ui/data-table';
+import { DataTable, DataTableColumnHeader } from '@/components/ui/data-table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
@@ -20,7 +20,8 @@ import {
   Filter,
   AlertCircle,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Eye
 } from 'lucide-react';
 
 interface Stats {
@@ -494,18 +495,16 @@ export default function Index({ orders, filters = {}, stats }: Props) {
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
+        const order = row.original;
         return (
-          <DataTableRowActions
-            row={row}
-            actions={[
-              {
-                label: "عرض التفاصيل",
-                onClick: (order: Order) => {
-                  router.visit(`/admin/orders/${order.id}`);
-                },
-              },
-            ]}
-          />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.visit(`/admin/orders/${order.id}`)}
+            className="hover:bg-muted"
+          >
+            <Eye className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors" />
+          </Button>
         );
       },
     },
