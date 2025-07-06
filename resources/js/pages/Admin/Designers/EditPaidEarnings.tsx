@@ -21,7 +21,8 @@ import {
   Store,
   Calculator,
   FileText,
-  CheckCircle
+  CheckCircle,
+  Plus,
 } from 'lucide-react';
 
 interface Stats {
@@ -38,6 +39,7 @@ interface Props {
 export default function EditPaidEarnings({ designer, stats }: Props) {
   const { data, setData, put, processing, errors, isDirty, reset } = useForm({
     paid_earnings: stats.paidEarnings.toString(),
+    amount_to_add: '0',
     admin_notes: '',
   });
 
@@ -75,6 +77,49 @@ export default function EditPaidEarnings({ designer, stats }: Props) {
     active: 'نشط',
     pending: 'معلق',
     expired: 'منتهي'
+  };
+
+  const handleAmountToAddChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newAmountToAdd = e.target.value === '' ? 0 : parseFloat(e.target.value);
+    const currentPaidEarnings = parseFloat(stats.paidEarnings.toString()) || 0;
+    
+    // If the input is empty or invalid, reset to current paid earnings
+    if (isNaN(newAmountToAdd)) {
+      setData({
+        ...data,
+        amount_to_add: '0',
+        paid_earnings: currentPaidEarnings.toString()
+      });
+      return;
+    }
+
+    // Calculate new total paid earnings
+    const newPaidEarnings = currentPaidEarnings + newAmountToAdd;
+
+    // Ensure we don't exceed total earnings
+    if (newPaidEarnings > stats.totalEarnings) {
+      const maxAllowedToAdd = stats.totalEarnings - currentPaidEarnings;
+      setData({
+        ...data,
+        amount_to_add: maxAllowedToAdd.toString(),
+        paid_earnings: stats.totalEarnings.toString()
+      });
+      return;
+    }
+
+    setData({
+      ...data,
+      amount_to_add: newAmountToAdd.toString(),
+      paid_earnings: newPaidEarnings.toString()
+    });
+  };
+
+  const handlePayAll = () => {
+    setData({
+      ...data,
+      paid_earnings: stats.totalEarnings.toString(),
+      amount_to_add: stats.unpaidEarnings.toString()
+    });
   };
 
   const currentPaidEarnings = parseFloat(data.paid_earnings) || 0;
@@ -210,22 +255,66 @@ export default function EditPaidEarnings({ designer, stats }: Props) {
           </CardHeader>
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="paid_earnings" className="text-sm font-medium text-foreground">
-                  مبلغ الأرباح المدفوعة (دج)
-                </Label>
-                <Input
-                  id="paid_earnings"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max={stats.totalEarnings}
-                  value={data.paid_earnings}
-                  onChange={e => setData('paid_earnings', e.target.value)}
-                  className={`text-right ${errors.paid_earnings ? 'border-red-500' : ''}`}
-                  placeholder="0.00"
-                />
-                <InputError message={errors.paid_earnings} />
+              <div className="space-y-4">
+                {/* Amount to Add Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="amount_to_add" className="text-sm font-medium text-foreground">
+                    المبلغ المراد إضافته (دج)
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="amount_to_add"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max={stats.unpaidEarnings}
+                      value={data.amount_to_add}
+                      onChange={handleAmountToAddChange}
+                      className="text-right"
+                      placeholder="0.00"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handlePayAll}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      دفع الكل
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Total Paid Earnings Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="paid_earnings" className="text-sm font-medium text-foreground">
+                    إجمالي الأرباح المدفوعة (دج)
+                  </Label>
+                  <Input
+                    id="paid_earnings"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max={stats.totalEarnings}
+                    value={data.paid_earnings}
+                    onChange={e => setData('paid_earnings', e.target.value)}
+                    className={`text-right ${errors.paid_earnings ? 'border-red-500' : ''}`}
+                    placeholder="0.00"
+                  />
+                  <InputError message={errors.paid_earnings} />
+                </div>
+
+                {/* Admin Notes */}
+                <div className="space-y-2">
+                  <Label htmlFor="admin_notes" className="text-sm font-medium text-foreground">
+                    ملاحظات الإدارة
+                  </Label>
+                  <Textarea
+                    id="admin_notes"
+                    value={data.admin_notes}
+                    onChange={e => setData('admin_notes', e.target.value)}
+                    className="text-right"
+                    placeholder="أضف ملاحظات حول عملية الدفع (اختياري)"
+                  />
+                </div>
                 
                 {/* Real-time calculation display */}
                 {isValidAmount && (
@@ -249,40 +338,24 @@ export default function EditPaidEarnings({ designer, stats }: Props) {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="admin_notes" className="text-sm font-medium text-foreground">
-                  ملاحظات الإدارة (اختياري)
-                </Label>
-                <Textarea
-                  id="admin_notes"
-                  value={data.admin_notes}
-                  onChange={e => setData('admin_notes', e.target.value)}
-                  className="text-right resize-none"
-                  rows={3}
-                  placeholder="أضف ملاحظات حول هذا التحديث..."
-                />
-                <InputError message={errors.admin_notes} />
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-4 pt-4 border-t border-border">
+              <div className="flex justify-end gap-3">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handleCancel}
+                  className="w-32"
                   disabled={processing}
-                  className="flex items-center gap-2"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-4 h-4 ml-2" />
                   إلغاء
                 </Button>
                 <Button
                   type="submit"
-                  disabled={processing || !isDirty || !isValidAmount}
-                  className="flex items-center gap-2"
+                  className="w-32 bg-primary"
+                  disabled={processing || !isValidAmount}
                 >
-                  <Save className="w-4 h-4" />
-                  {processing ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                  <Save className="w-4 h-4 ml-2" />
+                  حفظ
                 </Button>
               </div>
             </form>
