@@ -189,10 +189,20 @@ export interface Part {
     localized_name?: string;
 }
 
+export interface OrderItem {
+    id: number;
+    order_id: number;
+    rachma_id: number;
+    price: number;
+    created_at: string;
+    updated_at: string;
+    rachma?: Rachma;
+}
+
 export interface Order {
     id: number;
     client_id: number;
-    rachma_id: number;
+    rachma_id?: number; // Made optional for multi-item orders
     amount: number;
     payment_method: 'ccp' | 'baridi_mob' | 'dahabiya';
     payment_proof_path: string;
@@ -207,7 +217,8 @@ export interface Order {
     created_at: string;
     updated_at: string;
     client?: User;
-    rachma?: Rachma;
+    rachma?: Rachma; // For backward compatibility
+    order_items?: OrderItem[]; // New field for multi-item orders
 }
 
 export interface Comment {

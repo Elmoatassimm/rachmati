@@ -46,10 +46,18 @@ interface Rachma {
   categories: Category[];
 }
 
+interface OrderItem {
+  id: number;
+  rachma_id: number;
+  price: number;
+  rachma: Rachma;
+}
+
 interface Order {
   id: number;
   client: User;
-  rachma: Rachma;
+  rachma?: Rachma; // For backward compatibility
+  order_items?: OrderItem[]; // For multi-item orders
   amount: number;
   status: string;
   created_at: string;
@@ -484,18 +492,44 @@ export default function Index({ orders, filters = {}, stats }: Props) {
     {
       accessorKey: "rachma.title",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="الرشمة" />
+        <DataTableColumnHeader column={column} title="الرشمات" />
       ),
       cell: ({ row }) => {
         const order = row.original;
-        // Use the title accessor which handles localization, fallback to individual fields if needed
-        const rachmaTitle = order.rachma?.title || order.rachma?.title_ar || order.rachma?.title_fr || 'غير محدد';
-        return (
-          <div>
-            <div className="font-medium">{rachmaTitle}</div>
-            <div className="text-sm text-gray-500">{order.rachma?.categories?.[0]?.name || 'غير محدد'}</div>
-          </div>
-        );
+
+        // Handle multi-item orders
+        if (order.order_items && order.order_items.length > 0) {
+          if (order.order_items.length === 1) {
+            const item = order.order_items[0];
+            const rachmaTitle = item.rachma?.title || item.rachma?.title_ar || item.rachma?.title_fr || 'غير محدد';
+            return (
+              <div>
+                <div className="font-medium">{rachmaTitle}</div>
+                <div className="text-sm text-gray-500">{item.rachma?.categories?.[0]?.name || 'غير محدد'}</div>
+              </div>
+            );
+          } else {
+            return (
+              <div>
+                <div className="font-medium">{order.order_items.length} رشمات</div>
+                <div className="text-sm text-gray-500">طلب متعدد الرشمات</div>
+              </div>
+            );
+          }
+        }
+
+        // Handle single-item orders (backward compatibility)
+        if (order.rachma) {
+          const rachmaTitle = order.rachma?.title || order.rachma?.title_ar || order.rachma?.title_fr || 'غير محدد';
+          return (
+            <div>
+              <div className="font-medium">{rachmaTitle}</div>
+              <div className="text-sm text-gray-500">{order.rachma?.categories?.[0]?.name || 'غير محدد'}</div>
+            </div>
+          );
+        }
+
+        return <span className="text-muted-foreground">غير محدد</span>;
       },
     },
     {
@@ -505,7 +539,24 @@ export default function Index({ orders, filters = {}, stats }: Props) {
       ),
       cell: ({ row }) => {
         const order = row.original;
-        return <span className="text-sm">{order.rachma?.designer?.user?.name || 'غير محدد'}</span>;
+
+        // Handle multi-item orders
+        if (order.order_items && order.order_items.length > 0) {
+          const uniqueDesigners = [...new Set(order.order_items.map((item: OrderItem) => item.rachma?.designer?.user?.name).filter(Boolean))];
+
+          if (uniqueDesigners.length === 1) {
+            return <span className="text-sm">{uniqueDesigners[0]}</span>;
+          } else if (uniqueDesigners.length > 1) {
+            return <span className="text-sm">{uniqueDesigners.length} مصممين</span>;
+          }
+        }
+
+        // Handle single-item orders (backward compatibility)
+        if (order.rachma?.designer?.user?.name) {
+          return <span className="text-sm">{order.rachma.designer.user.name}</span>;
+        }
+
+        return <span className="text-sm text-muted-foreground">غير محدد</span>;
       },
     },
     {

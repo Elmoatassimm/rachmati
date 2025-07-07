@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('client_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('rachma_id')->constrained('rachmat')->onDelete('cascade');
+            $table->foreignId('rachma_id')->nullable()->constrained('rachmat')->onDelete('cascade'); // Made nullable for multi-item orders
             $table->decimal('amount', 8, 2);
             $table->enum('payment_method', ['ccp', 'baridi_mob', 'dahabiya']);
             $table->string('payment_proof_path');

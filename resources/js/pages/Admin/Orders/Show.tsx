@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import ErrorBoundary from '@/components/error-boundary';
-import { Order } from '@/types';
+import { Order, OrderItem } from '@/types';
 import {
   ArrowLeft,
   CheckCircle,
@@ -95,8 +95,7 @@ export default function Show({ order }: Props) {
       setDeliveryStatus(data);
       setShowDeliveryCheck(true);
       return data;
-    } catch (error) {
-      console.error('Error checking file delivery:', error);
+    } catch {
       return null;
     }
   };
@@ -135,11 +134,10 @@ export default function Show({ order }: Props) {
 
       updateForm.put(route('admin.orders.update', order.id), {
         onSuccess: () => {
-          console.log('Order confirmed successfully');
           setShowDeliveryCheck(false);
         },
-        onError: (errors) => {
-          console.error('Error confirming order:', errors);
+        onError: () => {
+          // Handle error silently
         },
       });
     }
@@ -147,22 +145,32 @@ export default function Show({ order }: Props) {
 
   const handleRejectOrder = () => {
     const reason = prompt('سبب الرفض:');
-    if (reason) {
-      updateForm.setData({
-        status: 'rejected',
-        admin_notes: 'تم رفض الطلب',
-        rejection_reason: reason
-      });
 
-      updateForm.put(route('admin.orders.update', order.id), {
-        onSuccess: () => {
-          console.log('Order rejected successfully');
-        },
-        onError: (errors) => {
-          console.error('Error rejecting order:', errors);
-        },
-      });
+    if (reason === null) {
+      // User clicked Cancel
+      return;
     }
+
+    if (reason.trim() === '') {
+      alert('يرجى إدخال سبب الرفض');
+      return;
+    }
+
+    const rejectionData = {
+      status: 'rejected',
+      admin_notes: 'تم رفض الطلب',
+      rejection_reason: reason.trim()
+    };
+
+    // Use router directly instead of form
+    router.put(route('admin.orders.update', order.id), rejectionData, {
+      onSuccess: () => {
+        alert('تم رفض الطلب بنجاح');
+      },
+      onError: () => {
+        alert('حدث خطأ أثناء رفض الطلب. يرجى المحاولة مرة أخرى.');
+      },
+    });
   };
 
 
@@ -571,6 +579,110 @@ export default function Show({ order }: Props) {
             </CardContent>
           </Card>
         </ErrorBoundary>
+
+          {/* Order Items (Multi-item orders) */}
+          {order.order_items && order.order_items.length > 0 && (
+            <ErrorBoundary>
+              <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-muted/20 shadow-2xl">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-blue-500/10"></div>
+                <CardHeader className="relative pb-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl">
+                      <Package className="w-7 h-7 text-white" />
+                    </div>
+                    <CardTitle className="text-3xl font-bold text-foreground">
+                      عناصر الطلب ({order.order_items.length} رشمات)
+                    </CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="relative">
+                  <div className="space-y-4">
+                    {order.order_items.map((item: OrderItem) => (
+                      <div key={item.id} className="p-6 bg-gradient-to-r from-background to-muted/20 rounded-xl border border-border/50">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                          {/* Item Info */}
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">اسم الرشمة</label>
+                              <p className="text-lg font-semibold text-foreground">
+                                {item.rachma?.title || item.rachma?.title_ar || item.rachma?.title_fr || 'غير محدد'}
+                              </p>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">المصمم</label>
+                              <p className="text-sm text-foreground">{item.rachma?.designer?.user?.name || 'غير محدد'}</p>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">التصنيف</label>
+                              <p className="text-sm text-foreground">{item.rachma?.categories?.[0]?.name || 'غير محدد'}</p>
+                            </div>
+                          </div>
+
+                          {/* Pricing */}
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">السعر</label>
+                              <p className="text-xl font-bold text-emerald-600">{formatCurrency(item.price)}</p>
+                            </div>
+                          </div>
+
+                          {/* Preview Images */}
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">صور المعاينة</label>
+                            <ErrorBoundary>
+                              {(() => {
+                                try {
+                                  const images = item.rachma?.preview_image_urls;
+                                  if (images && Array.isArray(images) && images.length > 0) {
+                                    return (
+                                      <div className="grid grid-cols-2 gap-2 mt-2">
+                                        {images.slice(0, 2).map((image, imgIndex) => {
+                                          if (typeof image !== 'string') return null;
+                                          return (
+                                            <div key={imgIndex} className="relative">
+                                              <img
+                                                src={image}
+                                                alt={`Preview ${imgIndex + 1}`}
+                                                className="w-full h-16 object-cover rounded border"
+                                                loading="lazy"
+                                                decoding="async"
+                                              />
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    );
+                                  }
+                                  return <p className="text-sm text-muted-foreground mt-2">لا توجد صور</p>;
+                                } catch (error) {
+                                  console.error('Error rendering item preview images:', error);
+                                  return <p className="text-sm text-destructive mt-2">خطأ في عرض الصور</p>;
+                                }
+                              })()}
+                            </ErrorBoundary>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Order Summary */}
+                    <div className="p-6 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl border border-primary/20">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">إجمالي الرشمات</label>
+                          <p className="text-2xl font-bold text-primary">{order.order_items.length}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">المبلغ الإجمالي</label>
+                          <p className="text-2xl font-bold text-emerald-600">{formatCurrency(order.amount)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </ErrorBoundary>
+          )}
 
           {/* Payment Information */}
           <ErrorBoundary>

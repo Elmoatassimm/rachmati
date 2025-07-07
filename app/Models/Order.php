@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
@@ -79,11 +80,34 @@ class Order extends Model
     }
 
     /**
-     * Get the rachma that belongs to the order.
+     * Get the rachma that belongs to the order (for backward compatibility).
      */
     public function rachma(): BelongsTo
     {
         return $this->belongsTo(Rachma::class);
+    }
+
+    /**
+     * Get the order items for the order.
+     */
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * Get all rachmat for this order through order items.
+     */
+    public function rachmat()
+    {
+        return $this->hasManyThrough(
+            Rachma::class,
+            OrderItem::class,
+            'order_id',
+            'id',
+            'id',
+            'rachma_id'
+        );
     }
 
     /**
@@ -166,5 +190,42 @@ class Order extends Model
     public function scopePending($query)
     {
         return $query->where('status', 'pending');
+    }
+
+    /**
+     * Check if this is a multi-item order
+     */
+    public function isMultiItem(): bool
+    {
+        return $this->orderItems()->count() > 1;
+    }
+
+    /**
+     * Get total items count (number of rachmat in order)
+     */
+    public function getTotalItemsCount(): int
+    {
+        return $this->orderItems()->count();
+    }
+
+    /**
+     * Recalculate order amount from order items
+     */
+    public function recalculateAmount(): void
+    {
+        $this->amount = $this->orderItems()->sum('price');
+        $this->save();
+    }
+
+    /**
+     * Get all designers involved in this order
+     */
+    public function getDesigners()
+    {
+        return $this->orderItems()
+            ->with('rachma.designer.user')
+            ->get()
+            ->pluck('rachma.designer')
+            ->unique('id');
     }
 }

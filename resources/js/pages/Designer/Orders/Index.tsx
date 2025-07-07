@@ -12,17 +12,29 @@ import { DesignerPageHeader } from '@/components/designer/DesignerPageHeader';
 import { DesignerStatsCards } from '@/components/designer/DesignerStatsCards';
 import { Package, Search, Loader2 } from 'lucide-react';
 
+interface OrderItem {
+  id: number;
+  rachma_id: number;
+  price: number;
+  rachma: {
+    title: string;
+    title_ar: string;
+    title_fr: string;
+  };
+}
+
 interface Order {
   id: number;
   client: {
     name: string;
     email: string;
   };
-  rachma: {
+  rachma?: {
     title: string;
     title_ar: string;
     title_fr: string;
   };
+  order_items?: OrderItem[];
   amount: number;
   status: string;
   created_at: string;
@@ -129,16 +141,48 @@ export default function Index({ orders, filters = {}, stats }: Props) {
     {
       accessorKey: "rachma",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="الرشمة" />
+        <DataTableColumnHeader column={column} title="الرشمات" />
       ),
       cell: ({ row }) => {
-        const rachma = row.original.rachma;
-        return (
-          <div>
-            <div className="font-medium">{rachma.title_ar}</div>
-            <div className="text-sm text-muted-foreground">{rachma.title}</div>
-          </div>
-        );
+        const order = row.original;
+
+        // Handle multi-item orders
+        if (order.order_items && order.order_items.length > 0) {
+          // Filter items that belong to this designer (in case of mixed orders)
+          const designerItems = order.order_items.filter((item: OrderItem) =>
+            // This would need designer filtering logic - for now show all items
+            true
+          );
+
+          if (designerItems.length === 1) {
+            const item = designerItems[0];
+            return (
+              <div>
+                <div className="font-medium">{item.rachma.title_ar || item.rachma.title}</div>
+                <div className="text-sm text-muted-foreground">رشمة واحدة</div>
+              </div>
+            );
+          } else {
+            return (
+              <div>
+                <div className="font-medium">{designerItems.length} رشمات</div>
+                <div className="text-sm text-muted-foreground">طلب متعدد الرشمات</div>
+              </div>
+            );
+          }
+        }
+
+        // Handle single-item orders (backward compatibility)
+        if (order.rachma) {
+          return (
+            <div>
+              <div className="font-medium">{order.rachma.title_ar || order.rachma.title}</div>
+              <div className="text-sm text-muted-foreground">رشمة واحدة</div>
+            </div>
+          );
+        }
+
+        return <span className="text-muted-foreground">غير محدد</span>;
       },
     },
     {

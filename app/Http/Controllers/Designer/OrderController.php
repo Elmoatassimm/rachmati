@@ -25,10 +25,17 @@ class OrderController extends Controller
                 ->with('error', 'لم يتم العثور على ملف المصمم');
         }
 
-        // Get orders for this designer's rachmat
-        $query = Order::with(['client', 'rachma'])
-            ->whereHas('rachma', function ($q) use ($designer) {
-                $q->where('designer_id', $designer->id);
+        // Get orders for this designer's rachmat (both single and multi-item orders)
+        $query = Order::with(['client', 'rachma', 'orderItems.rachma'])
+            ->where(function ($q) use ($designer) {
+                // Orders with direct rachma_id belonging to this designer
+                $q->whereHas('rachma', function ($subQ) use ($designer) {
+                    $subQ->where('designer_id', $designer->id);
+                })
+                // OR orders with order items containing this designer's rachmat
+                ->orWhereHas('orderItems.rachma', function ($subQ) use ($designer) {
+                    $subQ->where('designer_id', $designer->id);
+                });
             })
             ->orderBy('created_at', 'desc');
 
@@ -94,7 +101,13 @@ class OrderController extends Controller
             abort(403, 'Unauthorized access to order');
         }
 
-        $order->load(['client', 'rachma.categories', 'rachma.parts']);
+        $order->load([
+            'client',
+            'rachma.categories',
+            'rachma.parts',
+            'orderItems.rachma.categories',
+            'orderItems.rachma.parts'
+        ]);
 
         return Inertia::render('Designer/Orders/Show', [
             'order' => $order

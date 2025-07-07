@@ -26,7 +26,13 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Order::with(['client', 'rachma.designer.user', 'rachma.categories'])
+        $query = Order::with([
+            'client',
+            'rachma.designer.user',
+            'rachma.categories',
+            'orderItems.rachma.designer.user',
+            'orderItems.rachma.categories'
+        ])
             ->orderBy('created_at', 'desc');
 
         // Filters
@@ -105,15 +111,28 @@ class OrderController extends Controller
         $order->load([
             'client',
             'rachma.designer.user',
-            'rachma.categories'
+            'rachma.categories',
+            'orderItems.rachma.designer.user',
+            'orderItems.rachma.categories'
         ]);
 
         // Add URL attributes to the order and rachma
         $orderData = $order->toArray();
         $orderData['payment_proof_url'] = $order->payment_proof_url;
 
+        // Add preview URLs for backward compatibility (single rachma)
         if ($order->rachma) {
             $orderData['rachma']['preview_image_urls'] = $order->rachma->preview_image_urls;
+        }
+
+        // Add preview URLs for order items
+        if ($order->orderItems) {
+            foreach ($orderData['order_items'] as $index => $item) {
+                if (isset($item['rachma'])) {
+                    $rachma = $order->orderItems[$index]->rachma;
+                    $orderData['order_items'][$index]['rachma']['preview_image_urls'] = $rachma->preview_image_urls;
+                }
+            }
         }
 
         return Inertia::render('Admin/Orders/Show', [
@@ -150,9 +169,23 @@ class OrderController extends Controller
      */
     public function update(UpdateOrderRequest $request, Order $order)
     {
+        // Load necessary relationships for file delivery
+        $order->load([
+            'client',
+            'rachma',
+            'orderItems.rachma'
+        ]);
+
         $validated = $request->validated();
         $oldStatus = $order->status;
         $newStatus = $validated['status'];
+
+        Log::info("Order update request", [
+            'order_id' => $order->id,
+            'old_status' => $oldStatus,
+            'new_status' => $newStatus,
+            'validated_data' => $validated
+        ]);
 
         // Validate file delivery before allowing completion
         if ($newStatus === 'completed' && $oldStatus !== 'completed') {
@@ -192,6 +225,11 @@ class OrderController extends Controller
                 case 'rejected':
                     $updateData['rejection_reason'] = $validated['rejection_reason'];
                     $updateData['rejected_at'] = now();
+
+                    Log::info("Order {$order->id} being rejected", [
+                        'rejection_reason' => $validated['rejection_reason'],
+                        'admin_notes' => $validated['admin_notes']
+                    ]);
                     break;
                 case 'pending':
                     // Reset timestamps when returning to pending (from rejected)
@@ -234,28 +272,60 @@ class OrderController extends Controller
      */
     private function validateFileDelivery(Order $order): array
     {
-        $rachma = $order->rachma;
         $client = $order->client;
 
-        // Check if rachma has any files
-        if (!$rachma->hasFiles()) {
+        // Handle both single-item and multi-item orders
+        $rachmatToCheck = [];
+
+        if ($order->rachma_id && $order->rachma) {
+            // Single-item order (backward compatibility)
+            $rachmatToCheck[] = $order->rachma;
+        } elseif ($order->orderItems && $order->orderItems->count() > 0) {
+            // Multi-item order
+            $rachmatToCheck = $order->orderItems->map(function($item) {
+                return $item->rachma;
+            })->filter()->all(); // Use all() instead of toArray() to keep model instances
+        }
+
+        if (empty($rachmatToCheck)) {
             return [
                 'canComplete' => false,
-                'message' => 'لا توجد ملفات مرتبطة بهذه الرشمة. يرجى رفع الملفات أولاً.',
-                'issues' => ['no_files']
+                'message' => 'لا توجد رشمات مرتبطة بهذا الطلب.',
+                'issues' => ['no_rachmat']
             ];
         }
 
-        // Check if all files exist on disk
+        // Check if all rachmat have files
+        $rachmatWithoutFiles = [];
         $missingFiles = [];
         $totalSize = 0;
+        $totalFilesCount = 0;
 
-        foreach ($rachma->files as $file) {
-            if (!$file->exists()) {
-                $missingFiles[] = $file->original_name;
-            } else {
-                $totalSize += $file->getFileSize() ?? 0;
+        foreach ($rachmatToCheck as $rachma) {
+            if (!$rachma->hasFiles()) {
+                $rachmatWithoutFiles[] = $rachma->title_ar ?? $rachma->title_fr ?? $rachma->title ?? "رشمة #{$rachma->id}";
+                continue;
             }
+
+            // Check if all files exist on disk
+            foreach ($rachma->files as $file) {
+                if (!$file->exists()) {
+                    $missingFiles[] = $file->original_name . " (رشمة: " . ($rachma->title_ar ?? $rachma->title_fr ?? $rachma->title ?? "#{$rachma->id}") . ")";
+                } else {
+                    $totalSize += $file->getFileSize() ?? 0;
+                    $totalFilesCount++;
+                }
+            }
+        }
+
+        // Check for rachmat without files
+        if (!empty($rachmatWithoutFiles)) {
+            return [
+                'canComplete' => false,
+                'message' => 'الرشمات التالية لا تحتوي على ملفات: ' . implode(', ', $rachmatWithoutFiles) . '. يرجى رفع الملفات أولاً.',
+                'issues' => ['no_files'],
+                'rachmatWithoutFiles' => $rachmatWithoutFiles
+            ];
         }
 
         if (!empty($missingFiles)) {
@@ -269,8 +339,8 @@ class OrderController extends Controller
 
         // Check total file size (Telegram limit is 50MB, but for multiple files we might create ZIP)
         if ($totalSize > 50 * 1024 * 1024) {
-            // If multiple files, we'll create a ZIP, so check if ZIP would be reasonable
-            if (count($rachma->files) > 1) {
+            // If multiple files across multiple rachmat, we'll create a ZIP, so check if ZIP would be reasonable
+            if ($totalFilesCount > 1) {
                 // Estimate ZIP size (usually 10-30% smaller, but we'll be conservative)
                 $estimatedZipSize = $totalSize * 0.8;
                 if ($estimatedZipSize > 50 * 1024 * 1024) {
@@ -305,7 +375,8 @@ class OrderController extends Controller
             'message' => 'جميع متطلبات التسليم متوفرة',
             'issues' => [],
             'totalSize' => $totalSize,
-            'filesCount' => count($rachma->files)
+            'filesCount' => $totalFilesCount,
+            'rachmatCount' => count($rachmatToCheck)
         ];
     }
 
@@ -315,22 +386,39 @@ class OrderController extends Controller
     private function attemptFileDelivery(Order $order): bool
     {
         try {
-            // Use the TelegramService to send the file
+            // Use the TelegramService to send the file (handles both single and multi-item orders)
             $delivered = $this->telegramService->sendRachmaFileWithRetry($order);
 
             if ($delivered) {
-                \Log::info("File successfully delivered for order completion", [
+                $logData = [
                     'order_id' => $order->id,
                     'client_id' => $order->client->id,
-                    'rachma_id' => $order->rachma->id
-                ]);
+                ];
+
+                // Add rachma info for logging
+                if ($order->rachma_id && $order->rachma) {
+                    $logData['rachma_id'] = $order->rachma->id;
+                    $logData['order_type'] = 'single_item';
+                } else {
+                    $logData['order_items_count'] = $order->orderItems->count();
+                    $logData['order_type'] = 'multi_item';
+                }
+
+                \Log::info("File successfully delivered for order completion", $logData);
                 return true;
             } else {
-                \Log::warning("File delivery failed during order completion", [
+                $logData = [
                     'order_id' => $order->id,
                     'client_id' => $order->client->id,
-                    'rachma_id' => $order->rachma->id
-                ]);
+                ];
+
+                if ($order->rachma_id && $order->rachma) {
+                    $logData['rachma_id'] = $order->rachma->id;
+                } else {
+                    $logData['order_items_count'] = $order->orderItems->count();
+                }
+
+                \Log::warning("File delivery failed during order completion", $logData);
                 return false;
             }
         } catch (\Exception $e) {
@@ -362,8 +450,54 @@ class OrderController extends Controller
      */
     public function checkFileDelivery(Order $order)
     {
+        // Load necessary relationships
+        $order->load([
+            'client',
+            'rachma',
+            'orderItems.rachma'
+        ]);
+
         $validation = $this->validateFileDelivery($order);
-        $rachma = $order->rachma;
+
+        // Collect all files from all rachmat in the order
+        $allFiles = [];
+        $hasFiles = false;
+
+        if ($order->rachma_id && $order->rachma) {
+            // Single-item order
+            $hasFiles = $order->rachma->hasFiles();
+            if ($hasFiles && $order->rachma->files) {
+                foreach ($order->rachma->files as $file) {
+                    $allFiles[] = [
+                        'id' => $file->id,
+                        'name' => $file->original_name,
+                        'format' => $file->format,
+                        'size' => $file->getFileSize(),
+                        'exists' => $file->exists(),
+                        'is_primary' => $file->is_primary,
+                        'rachma_title' => $order->rachma->title_ar ?? $order->rachma->title_fr ?? $order->rachma->title ?? "رشمة #{$order->rachma->id}"
+                    ];
+                }
+            }
+        } elseif ($order->orderItems && $order->orderItems->count() > 0) {
+            // Multi-item order
+            foreach ($order->orderItems as $item) {
+                if ($item->rachma && $item->rachma->hasFiles()) {
+                    $hasFiles = true;
+                    foreach ($item->rachma->files as $file) {
+                        $allFiles[] = [
+                            'id' => $file->id,
+                            'name' => $file->original_name,
+                            'format' => $file->format,
+                            'size' => $file->getFileSize(),
+                            'exists' => $file->exists(),
+                            'is_primary' => $file->is_primary,
+                            'rachma_title' => $item->rachma->title_ar ?? $item->rachma->title_fr ?? $item->rachma->title ?? "رشمة #{$item->rachma->id}"
+                        ];
+                    }
+                }
+            }
+        }
 
         return response()->json([
             'canComplete' => $validation['canComplete'],
@@ -371,18 +505,10 @@ class OrderController extends Controller
             'issues' => $validation['issues'],
             'totalSize' => $validation['totalSize'] ?? null,
             'filesCount' => $validation['filesCount'] ?? 0,
+            'rachmatCount' => $validation['rachmatCount'] ?? 1,
             'clientHasTelegram' => !empty($order->client->telegram_chat_id),
-            'hasFiles' => $rachma->hasFiles(),
-            'files' => $rachma->files ? array_map(function($file) {
-                return [
-                    'id' => $file->id,
-                    'name' => $file->original_name,
-                    'format' => $file->format,
-                    'size' => $file->getFileSize(),
-                    'exists' => $file->exists(),
-                    'is_primary' => $file->is_primary
-                ];
-            }, $rachma->files) : [],
+            'hasFiles' => $hasFiles,
+            'files' => $allFiles,
             'recommendations' => $this->getDeliveryRecommendations($validation)
         ]);
     }
@@ -448,11 +574,17 @@ class OrderController extends Controller
             'pending' => "🔄 *تم إعادة فتح طلبك / Votre commande a été rouverte*\n\nالرشمة / Rachma: {$order->rachma->title}\nالمبلغ / Montant: {$order->amount} DZD\nسيتم مراجعة طلبك مجدداً / Votre commande sera réexaminée",
         ];
 
-        if (isset($statusMessages[$newStatus])) {
+        if (isset($statusMessages[$newStatus]) && $order->client->telegram_chat_id) {
             $this->telegramService->sendNotification(
                 $order->client->telegram_chat_id,
                 $statusMessages[$newStatus]
             );
+        } elseif (isset($statusMessages[$newStatus])) {
+            Log::info("Skipping Telegram notification - client has no telegram_chat_id", [
+                'order_id' => $order->id,
+                'client_id' => $order->client->id,
+                'status' => $newStatus
+            ]);
         }
     }
 

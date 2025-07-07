@@ -267,7 +267,6 @@ class TelegramService
         for ($attempt = 1; $attempt <= $this->maxRetries; $attempt++) {
             try {
                 $client = $order->client;
-                $rachma = $order->rachma;
 
                 // Check if client has telegram chat ID
                 if (!$client->telegram_chat_id) {
@@ -275,22 +274,43 @@ class TelegramService
                     return false;
                 }
 
-                // Handle multiple files or single file
-                $filesToSend = $this->prepareFilesForDelivery($rachma);
+                // Handle both single-item and multi-item orders
+                $allFilesToSend = [];
 
-                if (empty($filesToSend)) {
-                    Log::error("No files found for rachma {$rachma->id}");
+                if ($order->rachma_id && $order->rachma) {
+                    // Single-item order (backward compatibility)
+                    $filesToSend = $this->prepareFilesForDelivery($order->rachma);
+                    if (!empty($filesToSend)) {
+                        $allFilesToSend = array_merge($allFilesToSend, $filesToSend);
+                    }
+                } elseif ($order->orderItems && $order->orderItems->count() > 0) {
+                    // Multi-item order
+                    foreach ($order->orderItems as $item) {
+                        if ($item->rachma) {
+                            $filesToSend = $this->prepareFilesForDelivery($item->rachma);
+                            if (!empty($filesToSend)) {
+                                $allFilesToSend = array_merge($allFilesToSend, $filesToSend);
+                            }
+                        }
+                    }
+                }
+
+                if (empty($allFilesToSend)) {
+                    Log::error("No files found for order {$order->id}");
                     return false;
                 }
 
                 // If multiple files, create ZIP package
-                if (count($filesToSend) > 1) {
-                    $zipPath = $this->createZipPackage($rachma, $filesToSend);
+                $zipPath = null;
+                if (count($allFilesToSend) > 1) {
+                    $zipPath = $this->createZipPackageForOrder($order, $allFilesToSend);
                     if (!$zipPath) {
-                        Log::error("Failed to create ZIP package for rachma {$rachma->id}");
+                        Log::error("Failed to create ZIP package for order {$order->id}");
                         return false;
                     }
                     $filesToSend = [$zipPath];
+                } else {
+                    $filesToSend = $allFilesToSend;
                 }
 
                 // Send each file
@@ -298,7 +318,7 @@ class TelegramService
                     $success = $this->sendSingleFile($client->telegram_chat_id, $filePath, $order);
                     if (!$success) {
                         // Clean up temporary ZIP if created
-                        if (count($rachma->files) > 1 && Storage::disk('private')->exists($filePath)) {
+                        if ($zipPath && Storage::disk('private')->exists($filePath)) {
                             Storage::disk('private')->delete($filePath);
                         }
                         return false;
@@ -306,13 +326,14 @@ class TelegramService
                 }
 
                 // Clean up temporary ZIP if created
-                if (count($rachma->files) > 1 && Storage::disk('private')->exists($filesToSend[0])) {
-                    Storage::disk('private')->delete($filesToSend[0]);
+                if ($zipPath && Storage::disk('private')->exists($zipPath)) {
+                    Storage::disk('private')->delete($zipPath);
                 }
 
-                Log::info("Rachma files sent successfully to client {$client->id} for order {$order->id}", [
+                Log::info("Order files sent successfully to client {$client->id} for order {$order->id}", [
                     'attempt' => $attempt,
-                    'files_count' => count($rachma->files)
+                    'files_count' => count($allFilesToSend),
+                    'order_type' => $order->rachma_id ? 'single_item' : 'multi_item'
                 ]);
 
                 return true;
@@ -414,6 +435,111 @@ class TelegramService
             ]);
             return null;
         }
+    }
+
+    /**
+     * Create a ZIP package containing all files from an order (multi-item support)
+     */
+    private function createZipPackageForOrder(Order $order, array $filePaths): ?string
+    {
+        try {
+            $zipFileName = "order_{$order->id}_files_" . time() . ".zip";
+            $zipPath = "temp/{$zipFileName}";
+            $fullZipPath = Storage::disk('private')->path($zipPath);
+
+            // Ensure temp directory exists
+            Storage::disk('private')->makeDirectory('temp');
+
+            $zip = new \ZipArchive();
+            if ($zip->open($fullZipPath, \ZipArchive::CREATE) !== TRUE) {
+                Log::error("Cannot create ZIP file: {$fullZipPath}");
+                return null;
+            }
+
+            // Group files by rachma to organize them in folders
+            $filesByRachma = [];
+
+            if ($order->rachma_id && $order->rachma) {
+                // Single-item order
+                $rachmaTitle = $this->sanitizeFileName($order->rachma->title_ar ?? $order->rachma->title_fr ?? $order->rachma->title ?? "rachma_{$order->rachma->id}");
+                $filesByRachma[$rachmaTitle] = $filePaths;
+            } elseif ($order->orderItems && $order->orderItems->count() > 0) {
+                // Multi-item order - organize by rachma
+                foreach ($order->orderItems as $item) {
+                    if ($item->rachma) {
+                        $rachmaTitle = $this->sanitizeFileName($item->rachma->title_ar ?? $item->rachma->title_fr ?? $item->rachma->title ?? "rachma_{$item->rachma->id}");
+                        if (!isset($filesByRachma[$rachmaTitle])) {
+                            $filesByRachma[$rachmaTitle] = [];
+                        }
+
+                        // Add files for this rachma
+                        $rachmaFiles = $this->prepareFilesForDelivery($item->rachma);
+                        $filesByRachma[$rachmaTitle] = array_merge($filesByRachma[$rachmaTitle], $rachmaFiles);
+                    }
+                }
+            }
+
+            // Add files to ZIP with folder structure
+            foreach ($filesByRachma as $rachmaFolder => $files) {
+                foreach ($files as $filePath) {
+                    $fullPath = Storage::disk('private')->path($filePath);
+                    if (file_exists($fullPath)) {
+                        $fileName = basename($filePath);
+                        // Add to folder if multiple rachmat, otherwise add to root
+                        $zipEntryName = count($filesByRachma) > 1 ? "{$rachmaFolder}/{$fileName}" : $fileName;
+                        $zip->addFile($fullPath, $zipEntryName);
+                    } else {
+                        Log::warning("File not found when creating ZIP: {$fullPath}");
+                    }
+                }
+            }
+
+            $zip->close();
+
+            // Check if ZIP was created successfully and is within size limits
+            if (file_exists($fullZipPath)) {
+                $zipSize = filesize($fullZipPath);
+                if ($zipSize > 50 * 1024 * 1024) { // 50MB Telegram limit
+                    unlink($fullZipPath);
+                    Log::error("Order ZIP package too large for Telegram", [
+                        'order_id' => $order->id,
+                        'zip_size' => $zipSize
+                    ]);
+                    return null;
+                }
+
+                Log::info("Order ZIP package created successfully", [
+                    'order_id' => $order->id,
+                    'zip_path' => $zipPath,
+                    'files_count' => count($filePaths),
+                    'rachmat_count' => count($filesByRachma)
+                ]);
+
+                return $zipPath;
+            }
+
+            return null;
+
+        } catch (\Exception $e) {
+            Log::error("Failed to create order ZIP package", [
+                'order_id' => $order->id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Sanitize filename for use in ZIP folders
+     */
+    private function sanitizeFileName(string $filename): string
+    {
+        // Remove or replace invalid characters
+        $filename = preg_replace('/[^\p{L}\p{N}\s\-_\.]/u', '', $filename);
+        $filename = trim($filename);
+        $filename = preg_replace('/\s+/', '_', $filename);
+
+        return $filename ?: 'rachma_files';
     }
 
     /**
