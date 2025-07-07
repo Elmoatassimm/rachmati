@@ -135,9 +135,15 @@ export default function Show({ order }: Props) {
       updateForm.put(route('admin.orders.update', order.id), {
         onSuccess: () => {
           setShowDeliveryCheck(false);
+          alert('✅ تم تأكيد الطلب وإرسال الملف بنجاح للعميل عبر التيليجرام!');
         },
-        onError: () => {
-          // Handle error silently
+        onError: (errors) => {
+          setShowDeliveryCheck(false);
+          // Show specific error message if available
+          const errorMessage = errors.file_delivery ||
+                              Object.values(errors)[0] ||
+                              'حدث خطأ أثناء تأكيد الطلب. يرجى المحاولة مرة أخرى.';
+          alert(`❌ ${errorMessage}`);
         },
       });
     }
@@ -165,10 +171,11 @@ export default function Show({ order }: Props) {
     // Use router directly instead of form
     router.put(route('admin.orders.update', order.id), rejectionData, {
       onSuccess: () => {
-        alert('تم رفض الطلب بنجاح');
+        alert('✅ تم رفض الطلب بنجاح وإرسال إشعار للعميل');
       },
-      onError: () => {
-        alert('حدث خطأ أثناء رفض الطلب. يرجى المحاولة مرة أخرى.');
+      onError: (errors) => {
+        const errorMessage = Object.values(errors)[0] || 'حدث خطأ أثناء رفض الطلب. يرجى المحاولة مرة أخرى.';
+        alert(`❌ ${errorMessage}`);
       },
     });
   };

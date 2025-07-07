@@ -127,6 +127,16 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
             ],
             [
+                'name' => 'عميل تجريبي للتيليجرام',
+                'email' => 'test.telegram@rachmat.com',
+                'phone' => '+213555000099',
+                'password' => Hash::make('password'),
+                'user_type' => 'client',
+                'is_verified' => true,
+                'email_verified_at' => now(),
+                'telegram_chat_id' => '6494748643', // Test Telegram ID for file delivery testing
+            ],
+            [
                 'name' => 'مريم زهرة',
                 'email' => 'mariam@client.com',
                 'phone' => '+213561234568',
