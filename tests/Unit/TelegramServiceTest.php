@@ -106,12 +106,11 @@ class TelegramServiceTest extends TestCase
     }
 
     /** @test */
-    public function it_can_link_user_by_phone_number()
+    public function it_can_link_user_by_user_id()
     {
         // Create user without telegram_chat_id
         $user = User::factory()->create([
             'user_type' => 'client',
-            'phone' => '+213555987654',
             'telegram_chat_id' => null
         ]);
 
@@ -129,7 +128,7 @@ class TelegramServiceTest extends TestCase
                     'type' => 'private'
                 ],
                 'date' => now()->timestamp,
-                'text' => '+213555987654'
+                'text' => "/start {$user->id}"
             ]
         ];
 
@@ -208,20 +207,7 @@ class TelegramServiceTest extends TestCase
         $this->assertTrue($result);
     }
 
-    /** @test */
-    public function it_normalizes_phone_numbers_correctly()
-    {
-        $service = new TelegramService();
-        $reflection = new \ReflectionClass($service);
-        $method = $reflection->getMethod('normalizePhoneNumber');
-        $method->setAccessible(true);
 
-        // Test various phone number formats
-        $this->assertEquals('+213555123456', $method->invoke($service, '+213555123456'));
-        $this->assertEquals('+213555123456', $method->invoke($service, '213555123456'));
-        $this->assertEquals('+213555123456', $method->invoke($service, '0555123456'));
-        $this->assertEquals('+213555123456', $method->invoke($service, '555123456'));
-    }
 
     /** @test */
     public function it_validates_webhook_data()

@@ -8,6 +8,7 @@ use TelegramBot\Api\Types\Update;
 use App\Models\Order;
 use App\Models\Rachma;
 use App\Models\User;
+use App\Models\TelegramLinkingToken;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
@@ -95,12 +96,7 @@ class TelegramService
             if (strpos($text, '/start') === 0) {
                 return $this->handleStartCommand((string)$chatId, $messageData);
             }
-            
-            // Handle phone number for user linking
-            if (preg_match('/^(\+213|0)[567]\d{8}$/', $text)) {
-                return $this->handlePhoneNumber((string)$chatId, $text);
-            }
-            
+
             // Default response for unrecognized commands
             return $this->sendDefaultResponse((string)$chatId);
             
@@ -136,15 +132,32 @@ class TelegramService
     private function handleStartCommand(string $chatId, array $messageData): bool
     {
         try {
-            $welcomeMessage = "🌟 *مرحباً بك في منصة رشمات / Bienvenue sur Rachmat Platform*\n\n";
-            $welcomeMessage .= "للحصول على إشعارات الطلبات والملفات، يرجى إرسال رقم هاتفك المسجل في التطبيق\n";
-            $welcomeMessage .= "Pour recevoir les notifications et fichiers, envoyez votre numéro de téléphone enregistré\n\n";
-            $welcomeMessage .= "مثال / Exemple: +213555123456 أو 0555123456";
+            $text = $messageData['text'] ?? '';
+
+            // Check if start command has a user ID parameter
+            if (preg_match('/^\/start\s+(.+)$/', $text, $matches)) {
+                $parameter = trim($matches[1]);
+
+                // Try to handle as user ID first (new method)
+                if (is_numeric($parameter)) {
+                    return $this->handleStartWithUserId($chatId, (int)$parameter);
+                }
+
+                // Fallback to token method for backward compatibility
+                return $this->handleStartWithToken($chatId, $parameter);
+            }
+
+            // Default start command without parameter
+            $welcomeMessage = "🌟 *مرحباً بك في منصة رشماتي / Bienvenue sur Rashmaati Platform*\n\n";
+            $welcomeMessage .= "لربط حسابك، يرجى استخدام الرابط المرسل من التطبيق\n";
+            $welcomeMessage .= "Pour lier votre compte, utilisez le lien envoyé depuis l'application\n\n";
+            $welcomeMessage .= "إذا لم تحصل على الرابط، يرجى فتح التطبيق والذهاب إلى إعدادات التليجرام\n";
+            $welcomeMessage .= "Si vous n'avez pas reçu le lien, ouvrez l'application et allez aux paramètres Telegram";
 
             $this->sendNotificationWithRetry($chatId, $welcomeMessage);
-            
-            Log::info('Start command processed', ['chat_id' => $chatId]);
-            
+
+            Log::info('Start command processed (no parameter)', ['chat_id' => $chatId]);
+
             return true;
         } catch (\Exception $e) {
             Log::error('Failed to handle start command', [
@@ -156,99 +169,146 @@ class TelegramService
     }
 
     /**
-     * Handle phone number for user linking
+     * Handle /start command with token for user linking
      */
-    private function handlePhoneNumber(string $chatId, string $phone): bool
+    private function handleStartWithToken(string $chatId, string $token): bool
     {
         try {
-            // Normalize phone number
-            $normalizedPhone = $this->normalizePhoneNumber($phone);
-            
-            // Find user by phone number
-            $user = User::where('phone', $normalizedPhone)->first();
-            
-            if (!$user) {
-                $errorMessage = "❌ *لم يتم العثور على حساب بهذا الرقم / Aucun compte trouvé avec ce numéro*\n\n";
-                $errorMessage .= "يرجى التأكد من رقم الهاتف أو إنشاء حساب جديد في التطبيق\n";
-                $errorMessage .= "Veuillez vérifier le numéro ou créer un compte dans l'application";
-                
+            // Find valid token
+            $linkingToken = TelegramLinkingToken::findValidToken($token);
+
+            if (!$linkingToken) {
+                $errorMessage = "❌ *رابط غير صالح أو منتهي الصلاحية / Lien invalide ou expiré*\n\n";
+                $errorMessage .= "يرجى طلب رابط جديد من التطبيق\n";
+                $errorMessage .= "Veuillez demander un nouveau lien depuis l'application";
+
                 $this->sendNotificationWithRetry($chatId, $errorMessage);
                 return false;
             }
-            
+
+            $user = $linkingToken->user;
+
             // Check if user already linked to another chat
             if ($user->telegram_chat_id && $user->telegram_chat_id !== $chatId) {
                 $warningMessage = "⚠️ *هذا الحساب مرتبط برقم تليجرام آخر / Ce compte est lié à un autre Telegram*\n\n";
                 $warningMessage .= "سيتم تحديث المعلومات للحساب الحالي\n";
                 $warningMessage .= "Les informations seront mises à jour pour le compte actuel";
-                
+
                 $this->sendNotificationWithRetry($chatId, $warningMessage);
             }
-            
+
             // Link user to chat ID
             $user->update(['telegram_chat_id' => $chatId]);
-            
+
+            // Delete the used token
+            $linkingToken->delete();
+
             $successMessage = "✅ *تم ربط حسابك بنجاح / Compte lié avec succès*\n\n";
             $successMessage .= "👤 الاسم / Nom: {$user->name}\n";
             $successMessage .= "📧 البريد الإلكتروني / Email: {$user->email}\n\n";
             $successMessage .= "🔔 ستتلقى الآن إشعارات الطلبات والملفات هنا\n";
             $successMessage .= "Vous recevrez maintenant les notifications et fichiers ici";
-            
+
             $this->sendNotificationWithRetry($chatId, $successMessage);
-            
-            Log::info('User linked to Telegram', [
+
+            Log::info('User linked to Telegram via token', [
                 'user_id' => $user->id,
                 'chat_id' => $chatId,
-                'phone' => $normalizedPhone
+                'token' => $token
             ]);
-            
+
             return true;
-            
+
         } catch (\Exception $e) {
-            Log::error('Failed to handle phone number', [
+            Log::error('Failed to handle start with token', [
                 'error' => $e->getMessage(),
                 'chat_id' => $chatId,
-                'phone' => $phone
+                'token' => $token
             ]);
-            
+
             $errorMessage = "❌ *حدث خطأ في النظام / Erreur système*\n\nيرجى المحاولة مرة أخرى / Veuillez réessayer";
             $this->sendNotificationWithRetry($chatId, $errorMessage);
-            
+
             return false;
         }
     }
+
+    /**
+     * Handle /start command with user ID for direct user linking
+     */
+    private function handleStartWithUserId(string $chatId, int $userId): bool
+    {
+        try {
+            // Find user by ID
+            $user = User::find($userId);
+
+            if (!$user) {
+                $errorMessage = "❌ *لم يتم العثور على حساب بهذا المعرف / Aucun compte trouvé avec cet identifiant*\n\n";
+                $errorMessage .= "يرجى التأكد من الرابط أو إنشاء حساب جديد في التطبيق\n";
+                $errorMessage .= "Veuillez vérifier le lien ou créer un compte dans l'application";
+
+                $this->sendNotificationWithRetry($chatId, $errorMessage);
+                return false;
+            }
+
+            // Check if user already linked to another chat
+            if ($user->telegram_chat_id && $user->telegram_chat_id !== $chatId) {
+                $warningMessage = "⚠️ *هذا الحساب مرتبط برقم تليجرام آخر / Ce compte est lié à un autre Telegram*\n\n";
+                $warningMessage .= "سيتم تحديث المعلومات للحساب الحالي\n";
+                $warningMessage .= "Les informations seront mises à jour pour le compte actuel";
+
+                $this->sendNotificationWithRetry($chatId, $warningMessage);
+            }
+
+            // Link user to chat ID
+            $user->update(['telegram_chat_id' => $chatId]);
+
+            $successMessage = "✅ *تم ربط حسابك بنجاح / Compte lié avec succès*\n\n";
+            $successMessage .= "👤 الاسم / Nom: {$user->name}\n";
+            $successMessage .= "📧 البريد الإلكتروني / Email: {$user->email}\n\n";
+            $successMessage .= "🔔 ستتلقى الآن إشعارات الطلبات والملفات هنا\n";
+            $successMessage .= "Vous recevrez maintenant les notifications et fichiers ici";
+
+            $this->sendNotificationWithRetry($chatId, $successMessage);
+
+            Log::info('User linked to Telegram via user ID', [
+                'user_id' => $user->id,
+                'chat_id' => $chatId
+            ]);
+
+            return true;
+
+        } catch (\Exception $e) {
+            Log::error('Failed to handle start with user ID', [
+                'error' => $e->getMessage(),
+                'chat_id' => $chatId,
+                'user_id' => $userId
+            ]);
+
+            $errorMessage = "❌ *حدث خطأ في النظام / Erreur système*\n\nيرجى المحاولة مرة أخرى / Veuillez réessayer";
+            $this->sendNotificationWithRetry($chatId, $errorMessage);
+
+            return false;
+        }
+    }
+
+
 
     /**
      * Send default response for unrecognized commands
      */
     private function sendDefaultResponse(string $chatId): bool
     {
-        $message = "🤖 *منصة رشمات / Rachmat Platform*\n\n";
+        $message = "🤖 *منصة رشماتي / Rashmaati Platform*\n\n";
         $message .= "للبدء، اكتب /start\n";
         $message .= "Pour commencer, tapez /start\n\n";
         $message .= "للمساعدة، تواصل مع الإدارة\n";
         $message .= "Pour aide, contactez l'administration";
-        
+
         return $this->sendNotificationWithRetry($chatId, $message);
     }
 
-    /**
-     * Normalize phone number format
-     */
-    private function normalizePhoneNumber(string $phone): string
-    {
-        // Remove all non-digit characters
-        $phone = preg_replace('/\D/', '', $phone);
-        
-        // Convert to +213 format
-        if (substr($phone, 0, 3) === '213') {
-            return '+' . $phone;
-        } elseif (substr($phone, 0, 1) === '0') {
-            return '+213' . substr($phone, 1);
-        } else {
-            return '+213' . $phone;
-        }
-    }
+
 
     /**
      * Validate webhook data (basic validation)
@@ -786,7 +846,7 @@ class TelegramService
         $message .= "• عدد الغرز / Nombre de points: {$rachma->gharazat}\n";
         $message .= "• المبلغ / Montant: {$order->amount} DA\n\n";
         $message .= "📎 *الملف المرفق / Fichier joint*\n";
-        $message .= "شكراً لاختيارك منصة رشمات / Merci d'avoir choisi Rachmat Platform! 🌟";
+        $message .= "شكراً لاختيارك منصة رشماتي / Merci d'avoir choisi Rashmaati Platform! 🌟";
 
         return $message;
     }

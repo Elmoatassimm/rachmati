@@ -180,7 +180,7 @@ class TelegramBotIntegrationTest extends TestCase
     }
 
     /** @test */
-    public function phone_number_links_user_to_telegram_chat()
+    public function user_id_links_user_to_telegram_chat()
     {
         $chatId = '123456789';
         $updateData = [
@@ -190,7 +190,7 @@ class TelegramBotIntegrationTest extends TestCase
                 'from' => ['id' => 123456, 'is_bot' => false, 'first_name' => 'Test'],
                 'chat' => ['id' => (int) $chatId, 'type' => 'private'],
                 'date' => now()->timestamp,
-                'text' => '+213555123456'
+                'text' => "/start {$this->client->id}"
             ]
         ];
 
@@ -210,9 +210,10 @@ class TelegramBotIntegrationTest extends TestCase
     }
 
     /** @test */
-    public function invalid_phone_number_shows_error_message()
+    public function invalid_user_id_shows_error_message()
     {
         $chatId = '123456789';
+        $nonExistentUserId = 99999; // Non-existent user ID
         $updateData = [
             'update_id' => 123456789,
             'message' => [
@@ -220,7 +221,7 @@ class TelegramBotIntegrationTest extends TestCase
                 'from' => ['id' => 123456, 'is_bot' => false, 'first_name' => 'Test'],
                 'chat' => ['id' => (int) $chatId, 'type' => 'private'],
                 'date' => now()->timestamp,
-                'text' => '+213999999999' // Non-existent phone number
+                'text' => "/start {$nonExistentUserId}"
             ]
         ];
 

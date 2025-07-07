@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\AdminPaymentInfoController;
 use App\Http\Controllers\Api\DesignerSubscriptionRequestController;
 use App\Http\Controllers\Api\AdminSubscriptionRequestController;
 use App\Http\Controllers\TelegramWebhookController;
+use App\Http\Controllers\Api\TelegramController;
 
 /*
 |--------------------------------------------------------------------------
@@ -66,6 +67,10 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/ratings', [RatingController::class, 'store']);
     Route::get('/ratings/{targetType}/{targetId}', [RatingController::class, 'index']);
     
+    // Telegram linking management
+    Route::post('/telegram/generate-link', [TelegramController::class, 'generateLink']);
+    Route::get('/telegram/status', [TelegramController::class, 'status']);
+
     // Rachma file download and telegram management
     Route::post('/rachmat/{rachma}/download-files', [RachmatController::class, 'downloadFiles']);
     Route::post('/rachmat/{rachma}/resend-telegram-files', [RachmatController::class, 'resendTelegramFiles']);
