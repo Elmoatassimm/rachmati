@@ -360,35 +360,22 @@ class TelegramService
                     return false;
                 }
 
-                // If multiple files, create ZIP package
-                $zipPath = null;
-                if (count($allFilesToSend) > 1) {
-                    $zipPath = $this->createZipPackageForOrder($order, $allFilesToSend);
-                    if (!$zipPath) {
-                        Log::error("Failed to create ZIP package for order {$order->id}");
-                        return false;
-                    }
-                    $filesToSend = [$zipPath];
-                } else {
-                    $filesToSend = $allFilesToSend;
-                }
+                // Send each file individually (no ZIP packaging)
+                $totalFiles = count($allFilesToSend);
+                $fileIndex = 1;
 
-                // Send each file
-                foreach ($filesToSend as $filePath) {
-                    $success = $this->sendSingleFile($client->telegram_chat_id, $filePath, $order);
+                foreach ($allFilesToSend as $filePath) {
+                    $success = $this->sendSingleFileWithIndex($client->telegram_chat_id, $filePath, $order, $fileIndex, $totalFiles);
                     if (!$success) {
-                        // Clean up temporary ZIP if created
-                        if ($zipPath && Storage::disk('private')->exists($filePath)) {
-                            Storage::disk('private')->delete($filePath);
-                        }
+                        Log::error("Failed to send file {$fileIndex}/{$totalFiles} for order {$order->id}", [
+                            'file_path' => $filePath
+                        ]);
                         return false;
                     }
+                    $fileIndex++;
                 }
 
-                // Clean up temporary ZIP if created
-                if ($zipPath && Storage::disk('private')->exists($zipPath)) {
-                    Storage::disk('private')->delete($zipPath);
-                }
+                // No ZIP cleanup needed since we're sending files directly
 
                 Log::info("Order files sent successfully to client {$client->id} for order {$order->id}", [
                     'attempt' => $attempt,
@@ -603,9 +590,9 @@ class TelegramService
     }
 
     /**
-     * Send a single file via Telegram
+     * Send a single file via Telegram with file index information
      */
-    private function sendSingleFile(string $chatId, string $filePath, Order $order): bool
+    private function sendSingleFileWithIndex(string $chatId, string $filePath, Order $order, int $fileIndex, int $totalFiles): bool
     {
         try {
             $fullFilePath = Storage::disk('private')->path($filePath);
@@ -633,8 +620,8 @@ class TelegramService
                 return false;
             }
 
-            // Prepare message
-            $message = $this->prepareFileMessage($order);
+            // Prepare message with file index
+            $message = $this->prepareFileMessageWithIndex($order, $fileIndex, $totalFiles);
 
             // Send file
             $this->telegram->sendDocument(
@@ -648,13 +635,25 @@ class TelegramService
 
             return true;
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Failed to send single file via Telegram", [
+                'error' => $e->getMessage(),
                 'file_path' => $filePath,
-                'error' => $e->getMessage()
+                'chat_id' => $chatId,
+                'order_id' => $order->id,
+                'file_index' => $fileIndex,
+                'total_files' => $totalFiles
             ]);
             return false;
         }
+    }
+
+    /**
+     * Send a single file via Telegram (legacy method for backward compatibility)
+     */
+    private function sendSingleFile(string $chatId, string $filePath, Order $order): bool
+    {
+        return $this->sendSingleFileWithIndex($chatId, $filePath, $order, 1, 1);
     }
 
     /**
@@ -830,13 +829,18 @@ class TelegramService
     }
 
     /**
-     * Prepare file message with order details
+     * Prepare file message with order details and file index
      */
-    private function prepareFileMessage(Order $order): string
+    private function prepareFileMessageWithIndex(Order $order, int $fileIndex, int $totalFiles): string
     {
         $message = "🎉 *تم تأكيد طلبك / Votre commande est confirmée*\n\n";
         $message .= "📋 *تفاصيل الطلب / Détails de la commande:*\n";
         $message .= "• رقم الطلب / N° commande: `{$order->id}`\n";
+
+        // Add file index information if multiple files
+        if ($totalFiles > 1) {
+            $message .= "• الملف / Fichier: {$fileIndex}/{$totalFiles}\n";
+        }
 
         // Handle both single-item and multi-item orders
         if ($order->rachma_id && $order->rachma) {
@@ -870,6 +874,14 @@ class TelegramService
         $message .= "شكراً لاختيارك منصة رشماتي / Merci d'avoir choisi Rashmaati Platform! 🌟";
 
         return $message;
+    }
+
+    /**
+     * Prepare file message with order details (legacy method for backward compatibility)
+     */
+    private function prepareFileMessage(Order $order): string
+    {
+        return $this->prepareFileMessageWithIndex($order, 1, 1);
     }
 
     /**
