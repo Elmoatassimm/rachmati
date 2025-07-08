@@ -55,6 +55,7 @@ export default function Show({ order }: Props) {
   } | null>(null);
 
   const [showDeliveryCheck, setShowDeliveryCheck] = React.useState(false);
+  const [isProcessing, setIsProcessing] = React.useState(false);
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -90,62 +91,89 @@ export default function Show({ order }: Props) {
 
   const checkFileDelivery = async () => {
     try {
-      const response = await fetch(route('admin.orders.check-file-delivery', order.id));
+      console.log('🔍 checkFileDelivery called for order:', order.id);
+      const url = route('admin.orders.check-file-delivery', order.id);
+      console.log('📡 Fetching URL:', url);
+
+      const response = await fetch(url);
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response headers:', response.headers);
+
+      if (!response.ok) {
+        console.error('❌ Response not OK:', response.status, response.statusText);
+        return null;
+      }
+
       const data = await response.json();
+      console.log('📋 Delivery check data:', data);
+
       setDeliveryStatus(data);
       setShowDeliveryCheck(true);
       return data;
-    } catch {
+    } catch (error) {
+      console.error('❌ Error in checkFileDelivery:', error);
       return null;
     }
   };
 
-  const handleConfirmOrder = async () => {
-    // First check file delivery status
-    const deliveryCheck = await checkFileDelivery();
+  const handleConfirmOrder = () => {
+    console.log('🔍 handleConfirmOrder called for order:', order.id);
 
-    if (!deliveryCheck) {
-      alert('فشل في التحقق من حالة التسليم. يرجى المحاولة مرة أخرى.');
+    // Prevent multiple clicks
+    if (isProcessing || updateForm.processing) {
+      console.log('⚠️ Request already in progress, ignoring click');
       return;
     }
 
-    if (!deliveryCheck.canComplete) {
-      // Show detailed error message
-      alert(`لا يمكن إكمال الطلب:\n${deliveryCheck.message}\n\nالتوصيات:\n${deliveryCheck.recommendations.join('\n')}`);
-      return;
-    }
+    // Simple confirmation without pre-check (backend will validate)
+    const confirmMessage = `هل أنت متأكد من تأكيد هذا الطلب وإرسال الملف للعميل؟\n\n` +
+      `سيتم إرسال الملف فوراً للعميل عبر التيليجرام عند التأكيد.`;
 
-    // Show confirmation with delivery details
-    const filesInfo = deliveryCheck.filesCount > 1
-      ? `${deliveryCheck.filesCount} ملفات`
-      : 'ملف واحد';
-
-    const confirmMessage = `هل أنت متأكد من تأكيد هذا الطلب؟\n\n` +
-      `✅ ${filesInfo} موجود (${deliveryCheck.totalSize ? formatFileSize(deliveryCheck.totalSize) : 'غير محدد'})\n` +
-      `${deliveryCheck.clientHasTelegram ? '✅' : '❌'} العميل مربوط بتيليجرام\n\n` +
-      `${deliveryCheck.filesCount > 1 ? 'سيتم ضغط الملفات في ملف ZIP و' : 'سيتم '}إرسال ${deliveryCheck.filesCount > 1 ? 'الملفات' : 'الملف'} فوراً للعميل عند التأكيد.`;
-
+    console.log('📝 Showing confirmation dialog');
     if (confirm(confirmMessage)) {
-      updateForm.setData({
+      console.log('✅ User confirmed, proceeding with order update');
+
+      const requestData = {
         status: 'completed',
         admin_notes: 'تم تأكيد الطلب وإرسال الملف',
         rejection_reason: ''
-      });
+      };
 
-      updateForm.put(route('admin.orders.update', order.id), {
-        onSuccess: () => {
+      console.log('📤 Request data:', requestData);
+      console.log('🔗 Route URL:', route('admin.orders.update', order.id));
+
+      setIsProcessing(true);
+
+      // Use router.put directly with data to avoid race condition
+      router.put(route('admin.orders.update', order.id), requestData, {
+        preserveScroll: true,
+        preserveState: true,
+        onStart: () => {
+          console.log('🚀 Request started');
+        },
+        onSuccess: (response) => {
+          console.log('✅ Request successful:', response);
           setShowDeliveryCheck(false);
+          setIsProcessing(false);
           alert('✅ تم تأكيد الطلب وإرسال الملف بنجاح للعميل عبر التيليجرام!');
         },
         onError: (errors) => {
+          console.error('❌ Request failed:', errors);
           setShowDeliveryCheck(false);
+          setIsProcessing(false);
           // Show specific error message if available
           const errorMessage = errors.file_delivery ||
                               Object.values(errors)[0] ||
                               'حدث خطأ أثناء تأكيد الطلب. يرجى المحاولة مرة أخرى.';
           alert(`❌ ${errorMessage}`);
         },
+        onFinish: () => {
+          console.log('🏁 Request finished');
+          setIsProcessing(false);
+        }
       });
+    } else {
+      console.log('❌ User cancelled confirmation');
     }
   };
 
@@ -375,10 +403,10 @@ export default function Show({ order }: Props) {
                       <Button
                         onClick={handleConfirmOrder}
                         className="h-12 px-8 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-                        disabled={updateForm.processing}
+                        disabled={isProcessing || updateForm.processing}
                       >
                         <CheckCircle className="w-5 h-5 ml-2" />
-                        {updateForm.processing ? 'جاري التأكيد...' : 'تأكيد الطلب وإرسال الملف'}
+                        {(isProcessing || updateForm.processing) ? 'جاري التأكيد...' : 'تأكيد الطلب وإرسال الملف'}
                       </Button>
                       <Button
                         onClick={handleRejectOrder}

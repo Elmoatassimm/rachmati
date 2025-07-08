@@ -834,17 +834,38 @@ class TelegramService
      */
     private function prepareFileMessage(Order $order): string
     {
-        $rachma = $order->rachma;
-        $designer = $rachma->designer;
-
         $message = "🎉 *تم تأكيد طلبك / Votre commande est confirmée*\n\n";
         $message .= "📋 *تفاصيل الطلب / Détails de la commande:*\n";
         $message .= "• رقم الطلب / N° commande: `{$order->id}`\n";
-        $message .= "• اسم الرشمة / Nom Rachma: {$rachma->title}\n";
-        $message .= "• المصمم / Designer: {$designer->store_name}\n";
-        $message .= "• الحجم / Taille: {$rachma->size}\n";
-        $message .= "• عدد الغرز / Nombre de points: {$rachma->gharazat}\n";
-        $message .= "• المبلغ / Montant: {$order->amount} DA\n\n";
+
+        // Handle both single-item and multi-item orders
+        if ($order->rachma_id && $order->rachma) {
+            // Single-item order (backward compatibility)
+            $rachma = $order->rachma;
+            $designer = $rachma->designer;
+
+            $message .= "• اسم الرشمة / Nom Rachma: {$rachma->title}\n";
+            $message .= "• المصمم / Designer: {$designer->store_name}\n";
+            $message .= "• الحجم / Taille: {$rachma->size}\n";
+            $message .= "• عدد الغرز / Nombre de points: {$rachma->gharazat}\n";
+        } else {
+            // Multi-item order
+            $orderItems = $order->orderItems()->with('rachma.designer')->get();
+            $itemCount = $orderItems->count();
+
+            $message .= "• عدد الرشمات / Nombre de Rachmas: {$itemCount}\n";
+
+            // List all items
+            foreach ($orderItems as $index => $item) {
+                $rachma = $item->rachma;
+                $designer = $rachma->designer;
+                $itemNum = $index + 1;
+
+                $message .= "  {$itemNum}. {$rachma->title} - {$designer->store_name}\n";
+            }
+        }
+
+        $message .= "• المبلغ / Montant: " . number_format((float)$order->amount, 0) . " DA\n\n";
         $message .= "📎 *الملف المرفق / Fichier joint*\n";
         $message .= "شكراً لاختيارك منصة رشماتي / Merci d'avoir choisi Rashmaati Platform! 🌟";
 

@@ -18,14 +18,12 @@ class CategoryFactory extends Factory
      */
     public function definition(): array
     {
-        $name = fake('ar_SA')->words(2, true);
+        $nameAr = fake('ar_SA')->words(2, true);
         $nameFr = fake('fr_FR')->words(2, true);
 
         return [
-            'name' => $name,
+            'name_ar' => $nameAr,
             'name_fr' => $nameFr,
-            'slug' => Str::slug($name, '-'),
-            'description' => fake('ar_SA')->sentence(),
         ];
     }
 } 

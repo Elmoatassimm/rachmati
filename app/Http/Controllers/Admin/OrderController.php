@@ -258,12 +258,12 @@ class OrderController extends Controller
         // Check if this is an AJAX request (for inline updates)
         if ($request->expectsJson() || $request->header('X-Inertia')) {
             return redirect()
-                ->route('admin.orders.index')
+                ->back()
                 ->with('success', 'تم تحديث حالة الطلب بنجاح ');
         }
 
         return redirect()
-            ->route('admin.orders.show', $order)
+            ->back()
             ->with('success','تم تحديث حالة الطلب بنجاح ');
     }
 
@@ -568,23 +568,96 @@ class OrderController extends Controller
      */
     private function sendStatusChangeNotification(Order $order, string $oldStatus, string $newStatus): void
     {
-        $statusMessages = [
-            'completed' => "🎉 *تم إكمال طلبك / Votre commande est terminée*\n\nالرشمة / Rachma: {$order->rachma->title}\nالمبلغ / Montant: {$order->amount} DZD\nيمكنك تحميل الملف الآن / Vous pouvez télécharger le fichier maintenant\nشكراً لثقتك بنا / Merci pour votre confiance",
-            'rejected' => "❌ *تم رفض طلبك / Votre commande a été rejetée*\n\nالرشمة / Rachma: {$order->rachma->title}\nالسبب / Raison: {$order->rejection_reason}\nيرجى التواصل مع الإدارة / Veuillez contacter l'administration",
-            'pending' => "🔄 *تم إعادة فتح طلبك / Votre commande a été rouverte*\n\nالرشمة / Rachma: {$order->rachma->title}\nالمبلغ / Montant: {$order->amount} DZD\nسيتم مراجعة طلبك مجدداً / Votre commande sera réexaminée",
-        ];
-
-        if (isset($statusMessages[$newStatus]) && $order->client->telegram_chat_id) {
-            $this->telegramService->sendNotification(
-                $order->client->telegram_chat_id,
-                $statusMessages[$newStatus]
-            );
-        } elseif (isset($statusMessages[$newStatus])) {
-            Log::info("Skipping Telegram notification - client has no telegram_chat_id", [
+        try {
+            Log::info("Preparing status change notification", [
                 'order_id' => $order->id,
-                'client_id' => $order->client->id,
-                'status' => $newStatus
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
+                'rachma_id' => $order->rachma_id,
+                'order_items_count' => $order->orderItems->count()
             ]);
+
+            // Prepare order description for both single-item and multi-item orders
+            $orderDescription = $this->getOrderDescription($order);
+
+            Log::info("Order description prepared", [
+                'order_id' => $order->id,
+                'description' => $orderDescription
+            ]);
+
+            $statusMessages = [
+                'completed' => "🎉 *تم إكمال طلبك / Votre commande est terminée*\n\n{$orderDescription}\nالمبلغ / Montant: " . number_format((float)$order->amount, 0) . " DZD\nيمكنك تحميل الملف الآن / Vous pouvez télécharger le fichier maintenant\nشكراً لثقتك بنا / Merci pour votre confiance",
+                'rejected' => "❌ *تم رفض طلبك / Votre commande a été rejetée*\n\n{$orderDescription}\nالسبب / Raison: {$order->rejection_reason}\nيرجى التواصل مع الإدارة / Veuillez contacter l'administration",
+                'pending' => "🔄 *تم إعادة فتح طلبك / Votre commande a été rouverte*\n\n{$orderDescription}\nالمبلغ / Montant: " . number_format((float)$order->amount, 0) . " DZD\nسيتم مراجعة طلبك مجدداً / Votre commande sera réexaminée",
+            ];
+
+            if (isset($statusMessages[$newStatus]) && $order->client->telegram_chat_id) {
+                $this->telegramService->sendNotification(
+                    $order->client->telegram_chat_id,
+                    $statusMessages[$newStatus]
+                );
+                Log::info("Status change notification sent", [
+                    'order_id' => $order->id,
+                    'status' => $newStatus
+                ]);
+            } elseif (isset($statusMessages[$newStatus])) {
+                Log::info("Skipping Telegram notification - client has no telegram_chat_id", [
+                    'order_id' => $order->id,
+                    'client_id' => $order->client->id,
+                    'status' => $newStatus
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error("Error in sendStatusChangeNotification", [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
+    }
+
+    /**
+     * Get order description for notifications
+     */
+    private function getOrderDescription(Order $order): string
+    {
+        try {
+            if ($order->rachma_id && $order->rachma) {
+                // Single-item order
+                return "الرشمة / Rachma: {$order->rachma->title}";
+            } else {
+                // Multi-item order
+                $orderItems = $order->orderItems()->with('rachma')->get();
+                $itemCount = $orderItems->count();
+
+                if ($itemCount === 0) {
+                    return "طلب / Commande: #{$order->id}";
+                } elseif ($itemCount === 1) {
+                    $item = $orderItems->first();
+                    if ($item && $item->rachma) {
+                        return "الرشمة / Rachma: {$item->rachma->title}";
+                    } else {
+                        return "طلب / Commande: #{$order->id}";
+                    }
+                } else {
+                    $description = "عدد الرشمات / Nombre de Rachmas: {$itemCount}\n";
+                    foreach ($orderItems as $index => $item) {
+                        $itemNum = $index + 1;
+                        if ($item && $item->rachma) {
+                            $description .= "  {$itemNum}. {$item->rachma->title}\n";
+                        } else {
+                            $description .= "  {$itemNum}. [رشمة غير متوفرة]\n";
+                        }
+                    }
+                    return trim($description);
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error("Error in getOrderDescription", [
+                'order_id' => $order->id,
+                'error' => $e->getMessage()
+            ]);
+            return "طلب / Commande: #{$order->id}";
         }
     }
 
@@ -621,10 +694,40 @@ class OrderController extends Controller
      */
     private function updateDesignerEarnings(Order $order): void
     {
-        $designer = $order->rachma->designer;
-        $commission = $order->amount * 0.7; // 70% to designer, 30% to platform
+        // Handle single-item orders (legacy)
+        if ($order->rachma_id && $order->rachma) {
+            $designer = $order->rachma->designer;
 
-        // Add to unpaid earnings
-        $designer->increment('earnings', $commission);
+            // Add full amount to unpaid earnings (100% to designer)
+            $designer->increment('earnings', $order->amount);
+            return;
+        }
+
+        // Handle multi-item orders
+        if ($order->orderItems && $order->orderItems->count() > 0) {
+            // Group order items by designer to calculate earnings per designer
+            $designerEarnings = [];
+
+            foreach ($order->orderItems as $orderItem) {
+                if ($orderItem->rachma && $orderItem->rachma->designer) {
+                    $designerId = $orderItem->rachma->designer->id;
+
+                    if (!isset($designerEarnings[$designerId])) {
+                        $designerEarnings[$designerId] = [
+                            'designer' => $orderItem->rachma->designer,
+                            'earnings' => 0
+                        ];
+                    }
+
+                    // Add full item price to designer earnings (100% to designer)
+                    $designerEarnings[$designerId]['earnings'] += $orderItem->price;
+                }
+            }
+
+            // Update earnings for each designer
+            foreach ($designerEarnings as $designerData) {
+                $designerData['designer']->increment('earnings', $designerData['earnings']);
+            }
+        }
     }
 }
