@@ -4,7 +4,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Category, SubCategory } from '@/types';
+import { Category } from '@/types';
 import {
   ArrowLeft,
   FolderOpen,
@@ -20,7 +20,7 @@ import {
 
 interface Props {
   category: Category & {
-    subCategories: SubCategory[];
+    rachmat_count?: number;
   };
 }
 
@@ -34,7 +34,7 @@ export default function Show({ category }: Props) {
   };
 
   const handleDelete = () => {
-    if (confirm(`هل أنت متأكد من حذف التصنيف "${category.name}"؟ سيتم حذف جميع التصنيفات الفرعية المرتبطة به.`)) {
+    if (confirm(`هل أنت متأكد من حذف التصنيف "${category.name}"؟ سيتم إلغاء ربط جميع الرشمات المرتبطة به.`)) {
       router.delete(`/admin/categories/${category.id}`);
     }
   };
@@ -132,14 +132,10 @@ export default function Show({ category }: Props) {
               <CardTitle>إحصائيات التصنيف</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-blue-50 p-4 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-blue-600">{category.rachmat_count || 0}</div>
-                  <p className="text-sm text-blue-700">الرشمات المرتبطة</p>
-                </div>
-                <div className="bg-purple-50 p-4 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-purple-600">{category.subCategories?.length || 0}</div>
-                  <p className="text-sm text-purple-700">التصنيفات الفرعية</p>
+              <div className="flex justify-center">
+                <div className="bg-blue-50 p-6 rounded-lg text-center min-w-[200px]">
+                  <div className="text-3xl font-bold text-blue-600">{category.rachmat_count || 0}</div>
+                  <p className="text-sm text-blue-700 mt-2">الرشمات المرتبطة</p>
                 </div>
               </div>
             </CardContent>

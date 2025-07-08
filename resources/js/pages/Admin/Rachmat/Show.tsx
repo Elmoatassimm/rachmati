@@ -148,7 +148,7 @@ export default function Show({ rachma, fileInfo, filesInfo, previewImagesInfo }:
                   </div>
                   <div className="flex items-center gap-1">
                     <DollarSign className="h-4 w-4 text-green-600" />
-                    {formatPrice((rachma as any).orders_sum_amount || 0)}
+                    {formatPrice(rachma.orders_sum_amount || 0)}
                   </div>
                 </div>
               </div>

@@ -58,8 +58,8 @@ class PartsSuggestionsController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name_ar' => 'required|string|max:255|unique:parts_suggestions,name_ar',
-            'name_fr' => 'required|string|max:255|unique:parts_suggestions,name_fr',
+            'name_ar' => 'required|string|max:255',
+            'name_fr' => 'required|string|max:255',
             'is_active' => 'boolean',
         ], [
             'name_ar.required' => 'الاسم باللغة العربية مطلوب',
@@ -107,8 +107,8 @@ class PartsSuggestionsController extends Controller
     public function update(Request $request, PartsSuggestion $partsSuggestion)
     {
         $request->validate([
-            'name_ar' => 'required|string|max:255|unique:parts_suggestions,name_ar,' . $partsSuggestion->id,
-            'name_fr' => 'required|string|max:255|unique:parts_suggestions,name_fr,' . $partsSuggestion->id,
+            'name_ar' => 'required|string|max:255' . $partsSuggestion->id,
+            'name_fr' => 'required|string|max:255' . $partsSuggestion->id,
             'is_active' => 'boolean',
         ], [
             'name_ar.required' => 'الاسم باللغة العربية مطلوب',

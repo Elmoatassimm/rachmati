@@ -173,15 +173,14 @@ export default function Index({ paymentInfos, filters = {} }: Props) {
           <AdminPageHeader
             title="إدارة معلومات الدفع"
             subtitle="إدارة معلومات الحسابات البنكية للدفع"
-            action={
-              <Button asChild>
-                <Link href="/admin/payment-info/create">
-                  <Plus className="w-4 h-4 ml-2" />
-                  إضافة حساب جديد
-                </Link>
-              </Button>
-            }
-          />
+          >
+            <Button asChild>
+              <Link href="/admin/payment-info/create">
+                <Plus className="w-4 h-4 ml-2" />
+                إضافة حساب جديد
+              </Link>
+            </Button>
+          </AdminPageHeader>
 
           <Card className="transition-all duration-200 hover:shadow-md border-0 shadow-sm">
             <CardHeader className="pb-6">

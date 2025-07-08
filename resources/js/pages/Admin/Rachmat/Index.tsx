@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
@@ -135,7 +135,7 @@ export default function Index({ rachmat, designers, categories, stats, filters }
 
   const handleDelete = (rachma: ExtendedRachma) => {
     const confirmMessage = `هل أنت متأكد من حذف الرشمة "${rachma.title_ar}"؟\n\nسيتم حذف جميع الملفات والبيانات المرتبطة بها نهائياً.\nهذا الإجراء لا يمكن التراجع عنه.`;
-    
+
     if (confirm(confirmMessage)) {
       router.delete(route('admin.rachmat.destroy', rachma.id), {
         preserveScroll: true,
@@ -145,12 +145,39 @@ export default function Index({ rachmat, designers, categories, stats, filters }
         },
         onError: (errors) => {
           console.error('Delete failed:', errors);
-          // Display specific error message
-          const errorMessage = errors.message || 'حدث خطأ أثناء حذف الرشمة. تأكد من عدم وجود طلبات مرتبطة بها.';
-          alert(errorMessage);
+
+          // Check if it's an order-related error and offer force delete
+          if (errors.message && errors.message.includes('طلبات')) {
+            const forceDeleteMessage = `${errors.message}\n\nهل تريد الحذف النهائي مع جميع الطلبات المرتبطة؟`;
+            if (confirm(forceDeleteMessage)) {
+              handleForceDelete(rachma);
+            }
+          } else {
+            // Display generic error message
+            const errorMessage = errors.message || 'حدث خطأ أثناء حذف الرشمة.';
+            alert(errorMessage);
+          }
         },
         onFinish: () => {
           // Optional: Add any cleanup logic here
+        }
+      });
+    }
+  };
+
+  const handleForceDelete = (rachma: ExtendedRachma) => {
+    const confirmMessage = `تحذير: سيتم حذف الرشمة "${rachma.title_ar}" نهائياً مع جميع الطلبات المرتبطة بها!\n\nهذا الإجراء لا يمكن التراجع عنه. هل أنت متأكد؟`;
+
+    if (confirm(confirmMessage)) {
+      router.delete(route('admin.rachmat.force-destroy', rachma.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+          console.log('Rachma force deleted successfully');
+        },
+        onError: (errors) => {
+          console.error('Force delete failed:', errors);
+          const errorMessage = errors.message || 'حدث خطأ أثناء الحذف النهائي.';
+          alert(errorMessage);
         }
       });
     }
@@ -255,13 +282,14 @@ export default function Index({ rachmat, designers, categories, stats, filters }
                   </a>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => handleDelete(rachma)}
                   className="text-red-600"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   حذف
                 </DropdownMenuItem>
+               
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

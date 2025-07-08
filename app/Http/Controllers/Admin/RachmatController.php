@@ -131,6 +131,12 @@ class RachmatController extends Controller
             'comments.user'
         ]);
 
+        // Load counts and sums for statistics
+        $rachma->loadCount('orders');
+        $rachma->loadSum(['orders' => function($query) {
+            $query->where('status', 'completed');
+        }], 'amount');
+
         // Get files information (supports both new multi-file and legacy single file)
         $filesInfo = [];
         $fileInfo = null; // Keep for backward compatibility
@@ -310,41 +316,53 @@ class RachmatController extends Controller
      */
     public function destroy(Rachma $rachma)
     {
-        // Check if rachma has orders
-        if ($rachma->orders()->count() > 0) {
-            return redirect()->back()
-                ->with('error', 'لا يمكن حذف الرشمة لوجود طلبات عليها. يجب إلغاء الطلبات أولاً.');
-        }
+        try {
+            // Check if rachma has orders
+            $ordersCount = $rachma->orders()->count();
+            if ($ordersCount > 0) {
+                return redirect()->back()
+                    ->with('error', "لا يمكن حذف الرشمة لوجود {$ordersCount} طلبات عليها. يجب إلغاء الطلبات أولاً أو استخدام الحذف النهائي.");
+            }
 
-        // Delete files
-        if ($rachma->file_path && Storage::disk('private')->exists($rachma->file_path)) {
-            Storage::disk('private')->delete($rachma->file_path);
-        }
+            // Delete files
+            if ($rachma->file_path && Storage::disk('private')->exists($rachma->file_path)) {
+                Storage::disk('private')->delete($rachma->file_path);
+            }
 
-        // Delete preview images
-        if ($rachma->preview_images) {
-            foreach ($rachma->preview_images as $imagePath) {
-                if (Storage::disk('public')->exists($imagePath)) {
-                    Storage::disk('public')->delete($imagePath);
+            // Delete preview images
+            if ($rachma->preview_images) {
+                foreach ($rachma->preview_images as $imagePath) {
+                    if (Storage::disk('public')->exists($imagePath)) {
+                        Storage::disk('public')->delete($imagePath);
+                    }
                 }
             }
+
+            // Delete parts
+            $rachma->parts()->delete();
+
+            // Delete ratings and comments
+            $rachma->ratings()->delete();
+            $rachma->comments()->delete();
+
+            // Detach categories
+            $rachma->categories()->detach();
+
+            // Delete the rachma
+            $rachma->delete();
+
+            return redirect()->route('admin.rachmat.index')
+                            ->with('success', 'تم حذف الرشمة وجميع ملفاتها بنجاح');
+        } catch (\Exception $e) {
+            \Log::error('Error deleting rachma: ' . $e->getMessage(), [
+                'rachma_id' => $rachma->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'حدث خطأ أثناء حذف الرشمة: ' . $e->getMessage());
         }
-
-        // Delete parts
-        $rachma->parts()->delete();
-
-        // Delete ratings and comments
-        $rachma->ratings()->delete();
-        $rachma->comments()->delete();
-
-        // Detach categories
-        $rachma->categories()->detach();
-
-        // Delete the rachma
-        $rachma->delete();
-
-        return redirect()->route('admin.rachmat.index')
-                        ->with('success', 'تم حذف الرشمة وجميع ملفاتها بنجاح');
     }
 
     /**
@@ -352,9 +370,10 @@ class RachmatController extends Controller
      */
     public function forceDestroy(Rachma $rachma)
     {
-        // Delete all orders first
-        $ordersCount = $rachma->orders()->count();
-        $rachma->orders()->delete();
+        try {
+            // Delete all orders first
+            $ordersCount = $rachma->orders()->count();
+            $rachma->orders()->delete();
 
         // Delete files
         if ($rachma->file_path && Storage::disk('private')->exists($rachma->file_path)) {
@@ -380,10 +399,20 @@ class RachmatController extends Controller
         // Detach categories
         $rachma->categories()->detach();
 
-        // Delete the rachma
-        $rachma->delete();
+            // Delete the rachma
+            $rachma->delete();
 
-        return redirect()->route('admin.rachmat.index')
-                        ->with('warning', "تم حذف الرشمة نهائياً مع {$ordersCount} طلب مرتبط بها");
+            return redirect()->route('admin.rachmat.index')
+                            ->with('warning', "تم حذف الرشمة نهائياً مع {$ordersCount} طلب مرتبط بها");
+        } catch (\Exception $e) {
+            \Log::error('Error force deleting rachma: ' . $e->getMessage(), [
+                'rachma_id' => $rachma->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'حدث خطأ أثناء الحذف النهائي: ' . $e->getMessage());
+        }
     }
 }
