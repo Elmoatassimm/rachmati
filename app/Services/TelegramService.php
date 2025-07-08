@@ -364,11 +364,12 @@ class TelegramService
                 $totalFiles = count($allFilesToSend);
                 $fileIndex = 1;
 
-                foreach ($allFilesToSend as $filePath) {
-                    $success = $this->sendSingleFileWithIndex($client->telegram_chat_id, $filePath, $order, $fileIndex, $totalFiles);
+                foreach ($allFilesToSend as $fileInfo) {
+                    $success = $this->sendSingleFileWithIndex($client->telegram_chat_id, $fileInfo, $order, $fileIndex, $totalFiles);
                     if (!$success) {
                         Log::error("Failed to send file {$fileIndex}/{$totalFiles} for order {$order->id}", [
-                            'file_path' => $filePath
+                            'file_path' => $fileInfo['path'],
+                            'original_name' => $fileInfo['original_name']
                         ]);
                         return false;
                     }
@@ -407,26 +408,35 @@ class TelegramService
     }
 
     /**
-     * Prepare files for delivery (get file paths)
+     * Prepare files for delivery (get file information with paths and original names)
      */
     private function prepareFilesForDelivery(Rachma $rachma): array
     {
-        $filePaths = [];
+        $fileInfos = [];
 
         // Use new multiple files system
         if ($rachma->hasFiles()) {
             foreach ($rachma->files as $file) {
                 if ($file->exists()) {
-                    $filePaths[] = $file->path;
+                    $fileInfos[] = [
+                        'path' => $file->path,
+                        'original_name' => $file->original_name,
+                        'format' => $file->format
+                    ];
                 }
             }
         }
         // Fallback to single file for backward compatibility
         elseif ($rachma->file_path && Storage::disk('private')->exists($rachma->file_path)) {
-            $filePaths[] = $rachma->file_path;
+            $pathInfo = pathinfo($rachma->file_path);
+            $fileInfos[] = [
+                'path' => $rachma->file_path,
+                'original_name' => $pathInfo['basename'] ?? 'rachma_file',
+                'format' => strtoupper($pathInfo['extension'] ?? 'unknown')
+            ];
         }
 
-        return $filePaths;
+        return $fileInfos;
     }
 
     /**
@@ -592,9 +602,13 @@ class TelegramService
     /**
      * Send a single file via Telegram with file index information
      */
-    private function sendSingleFileWithIndex(string $chatId, string $filePath, Order $order, int $fileIndex, int $totalFiles): bool
+    private function sendSingleFileWithIndex(string $chatId, array $fileInfo, Order $order, int $fileIndex, int $totalFiles): bool
     {
         try {
+            $filePath = $fileInfo['path'];
+            $originalName = $fileInfo['original_name'];
+            $format = $fileInfo['format'];
+
             $fullFilePath = Storage::disk('private')->path($filePath);
 
             if (!file_exists($fullFilePath)) {
@@ -608,6 +622,7 @@ class TelegramService
             if ($fileSize > 50 * 1024 * 1024) {
                 Log::error("File too large for Telegram", [
                     'file_path' => $filePath,
+                    'original_name' => $originalName,
                     'file_size' => $fileSize
                 ]);
 
@@ -623,22 +638,32 @@ class TelegramService
             // Prepare message with file index
             $message = $this->prepareFileMessageWithIndex($order, $fileIndex, $totalFiles);
 
-            // Send file
+            // Send file with original filename to preserve extension
             $this->telegram->sendDocument(
                 $chatId,
-                new \CURLFile($fullFilePath),
+                new \CURLFile($fullFilePath, null, $originalName),
                 $message,
                 null,
                 null,
                 true // disable_notification = false
             );
 
+            Log::info("File sent successfully via Telegram", [
+                'file_path' => $filePath,
+                'original_name' => $originalName,
+                'format' => $format,
+                'file_index' => $fileIndex,
+                'total_files' => $totalFiles,
+                'order_id' => $order->id
+            ]);
+
             return true;
 
         } catch (Exception $e) {
             Log::error("Failed to send single file via Telegram", [
                 'error' => $e->getMessage(),
-                'file_path' => $filePath,
+                'file_path' => $fileInfo['path'] ?? 'unknown',
+                'original_name' => $fileInfo['original_name'] ?? 'unknown',
                 'chat_id' => $chatId,
                 'order_id' => $order->id,
                 'file_index' => $fileIndex,
@@ -653,7 +678,15 @@ class TelegramService
      */
     private function sendSingleFile(string $chatId, string $filePath, Order $order): bool
     {
-        return $this->sendSingleFileWithIndex($chatId, $filePath, $order, 1, 1);
+        // Convert legacy file path to file info format
+        $pathInfo = pathinfo($filePath);
+        $fileInfo = [
+            'path' => $filePath,
+            'original_name' => $pathInfo['basename'] ?? 'file',
+            'format' => strtoupper($pathInfo['extension'] ?? 'unknown')
+        ];
+
+        return $this->sendSingleFileWithIndex($chatId, $fileInfo, $order, 1, 1);
     }
 
     /**
