@@ -27,15 +27,34 @@ class DashboardController extends Controller
         // Basic Statistics
         $totalRachmat = $designer->rachmat()->count();
         $activeRachmat = $designer->rachmat()->count(); // All rachmat are considered active now
-        $totalSales = $designer->rachmat()->withCount('orders')->get()->sum('orders_count');
+
+        // Calculate total sales including both single and multi-item orders
+        $totalSales = Order::where(function ($q) use ($designer) {
+            // Orders with direct rachma_id belonging to this designer
+            $q->whereHas('rachma', function ($subQ) use ($designer) {
+                $subQ->where('designer_id', $designer->id);
+            })
+            // OR orders with order items containing this designer's rachmat
+            ->orWhereHas('orderItems.rachma', function ($subQ) use ($designer) {
+                $subQ->where('designer_id', $designer->id);
+            });
+        })->count();
+
         $totalEarnings = $designer->paid_earnings + $designer->unpaid_earnings;
         $unpaidEarnings = $designer->unpaid_earnings;
 
         // Recent Orders
-        $recentOrders = Order::whereHas('rachma', function ($query) use ($designer) {
-            $query->where('designer_id', $designer->id);
+        $recentOrders = Order::where(function ($q) use ($designer) {
+            // Orders with direct rachma_id belonging to this designer
+            $q->whereHas('rachma', function ($subQ) use ($designer) {
+                $subQ->where('designer_id', $designer->id);
+            })
+            // OR orders with order items containing this designer's rachmat
+            ->orWhereHas('orderItems.rachma', function ($subQ) use ($designer) {
+                $subQ->where('designer_id', $designer->id);
+            });
         })
-        ->with(['client', 'rachma'])
+        ->with(['client', 'rachma', 'orderItems.rachma'])
         ->orderBy('created_at', 'desc')
         ->limit(5)
         ->get();
@@ -44,8 +63,15 @@ class DashboardController extends Controller
         $monthlySales = [];
         for ($i = 5; $i >= 0; $i--) {
             $month = Carbon::now()->subMonths($i);
-            $sales = Order::whereHas('rachma', function ($query) use ($designer) {
-                $query->where('designer_id', $designer->id);
+            $sales = Order::where(function ($q) use ($designer) {
+                // Orders with direct rachma_id belonging to this designer
+                $q->whereHas('rachma', function ($subQ) use ($designer) {
+                    $subQ->where('designer_id', $designer->id);
+                })
+                // OR orders with order items containing this designer's rachmat
+                ->orWhereHas('orderItems.rachma', function ($subQ) use ($designer) {
+                    $subQ->where('designer_id', $designer->id);
+                });
             })
             ->where('status', 'completed')
             ->whereYear('created_at', $month->year)
@@ -58,12 +84,21 @@ class DashboardController extends Controller
             ];
         }
 
-        // Top Performing Rachmat
+        // Top Performing Rachmat (including both direct orders and order items)
         $topRachmat = $designer->rachmat()
-            ->withCount('orders')
-            ->orderBy('orders_count', 'desc')
-            ->limit(5)
-            ->get();
+            ->withCount([
+                'orders', // Direct orders (legacy)
+                'orderItems' // Orders through order_items table
+            ])
+            ->get()
+            ->map(function ($rachma) {
+                // Calculate total orders count (direct + order items)
+                $rachma->total_orders_count = $rachma->orders_count + $rachma->order_items_count;
+                return $rachma;
+            })
+            ->sortByDesc('total_orders_count')
+            ->take(5)
+            ->values();
 
         // Recent Ratings
         $recentRatings = Rating::where('target_type', 'rachma')
@@ -163,7 +198,19 @@ class DashboardController extends Controller
         // Basic Statistics
         $totalRachmat = $designer->rachmat()->count();
         $activeRachmat = $designer->rachmat()->count(); // All rachmat are considered active now
-        $totalSales = $designer->rachmat()->withCount('orders')->get()->sum('orders_count');
+
+        // Calculate total sales including both single and multi-item orders
+        $totalSales = Order::where(function ($q) use ($designer) {
+            // Orders with direct rachma_id belonging to this designer
+            $q->whereHas('rachma', function ($subQ) use ($designer) {
+                $subQ->where('designer_id', $designer->id);
+            })
+            // OR orders with order items containing this designer's rachmat
+            ->orWhereHas('orderItems.rachma', function ($subQ) use ($designer) {
+                $subQ->where('designer_id', $designer->id);
+            });
+        })->count();
+
         $totalEarnings = $designer->paid_earnings + $designer->unpaid_earnings;
         $unpaidEarnings = $designer->unpaid_earnings;
 
@@ -171,32 +218,60 @@ class DashboardController extends Controller
         $currentMonth = Carbon::now();
         $lastMonth = Carbon::now()->subMonth();
 
-        $currentMonthSales = Order::whereHas('rachma', function ($query) use ($designer) {
-            $query->where('designer_id', $designer->id);
+        $currentMonthSales = Order::where(function ($q) use ($designer) {
+            // Orders with direct rachma_id belonging to this designer
+            $q->whereHas('rachma', function ($subQ) use ($designer) {
+                $subQ->where('designer_id', $designer->id);
+            })
+            // OR orders with order items containing this designer's rachmat
+            ->orWhereHas('orderItems.rachma', function ($subQ) use ($designer) {
+                $subQ->where('designer_id', $designer->id);
+            });
         })
         ->where('status', 'completed')
         ->whereYear('created_at', $currentMonth->year)
         ->whereMonth('created_at', $currentMonth->month)
         ->count();
 
-        $lastMonthSales = Order::whereHas('rachma', function ($query) use ($designer) {
-            $query->where('designer_id', $designer->id);
+        $lastMonthSales = Order::where(function ($q) use ($designer) {
+            // Orders with direct rachma_id belonging to this designer
+            $q->whereHas('rachma', function ($subQ) use ($designer) {
+                $subQ->where('designer_id', $designer->id);
+            })
+            // OR orders with order items containing this designer's rachmat
+            ->orWhereHas('orderItems.rachma', function ($subQ) use ($designer) {
+                $subQ->where('designer_id', $designer->id);
+            });
         })
         ->where('status', 'completed')
         ->whereYear('created_at', $lastMonth->year)
         ->whereMonth('created_at', $lastMonth->month)
         ->count();
 
-        $currentMonthRevenue = Order::whereHas('rachma', function ($query) use ($designer) {
-            $query->where('designer_id', $designer->id);
+        $currentMonthRevenue = Order::where(function ($q) use ($designer) {
+            // Orders with direct rachma_id belonging to this designer
+            $q->whereHas('rachma', function ($subQ) use ($designer) {
+                $subQ->where('designer_id', $designer->id);
+            })
+            // OR orders with order items containing this designer's rachmat
+            ->orWhereHas('orderItems.rachma', function ($subQ) use ($designer) {
+                $subQ->where('designer_id', $designer->id);
+            });
         })
         ->where('status', 'completed')
         ->whereYear('created_at', $currentMonth->year)
         ->whereMonth('created_at', $currentMonth->month)
         ->sum('amount');
 
-        $lastMonthRevenue = Order::whereHas('rachma', function ($query) use ($designer) {
-            $query->where('designer_id', $designer->id);
+        $lastMonthRevenue = Order::where(function ($q) use ($designer) {
+            // Orders with direct rachma_id belonging to this designer
+            $q->whereHas('rachma', function ($subQ) use ($designer) {
+                $subQ->where('designer_id', $designer->id);
+            })
+            // OR orders with order items containing this designer's rachmat
+            ->orWhereHas('orderItems.rachma', function ($subQ) use ($designer) {
+                $subQ->where('designer_id', $designer->id);
+            });
         })
         ->where('status', 'completed')
         ->whereYear('created_at', $lastMonth->year)
@@ -204,10 +279,17 @@ class DashboardController extends Controller
         ->sum('amount');
 
         // Recent Orders
-        $recentOrders = Order::whereHas('rachma', function ($query) use ($designer) {
-            $query->where('designer_id', $designer->id);
+        $recentOrders = Order::where(function ($q) use ($designer) {
+            // Orders with direct rachma_id belonging to this designer
+            $q->whereHas('rachma', function ($subQ) use ($designer) {
+                $subQ->where('designer_id', $designer->id);
+            })
+            // OR orders with order items containing this designer's rachmat
+            ->orWhereHas('orderItems.rachma', function ($subQ) use ($designer) {
+                $subQ->where('designer_id', $designer->id);
+            });
         })
-        ->with(['client', 'rachma'])
+        ->with(['client', 'rachma', 'orderItems.rachma'])
         ->orderBy('created_at', 'desc')
         ->limit(10)
         ->get();
@@ -216,16 +298,30 @@ class DashboardController extends Controller
         $monthlySales = [];
         for ($i = 5; $i >= 0; $i--) {
             $month = Carbon::now()->subMonths($i);
-            $sales = Order::whereHas('rachma', function ($query) use ($designer) {
-                $query->where('designer_id', $designer->id);
+            $sales = Order::where(function ($q) use ($designer) {
+                // Orders with direct rachma_id belonging to this designer
+                $q->whereHas('rachma', function ($subQ) use ($designer) {
+                    $subQ->where('designer_id', $designer->id);
+                })
+                // OR orders with order items containing this designer's rachmat
+                ->orWhereHas('orderItems.rachma', function ($subQ) use ($designer) {
+                    $subQ->where('designer_id', $designer->id);
+                });
             })
             ->where('status', 'completed')
             ->whereYear('created_at', $month->year)
             ->whereMonth('created_at', $month->month)
             ->count();
 
-            $revenue = Order::whereHas('rachma', function ($query) use ($designer) {
-                $query->where('designer_id', $designer->id);
+            $revenue = Order::where(function ($q) use ($designer) {
+                // Orders with direct rachma_id belonging to this designer
+                $q->whereHas('rachma', function ($subQ) use ($designer) {
+                    $subQ->where('designer_id', $designer->id);
+                })
+                // OR orders with order items containing this designer's rachmat
+                ->orWhereHas('orderItems.rachma', function ($subQ) use ($designer) {
+                    $subQ->where('designer_id', $designer->id);
+                });
             })
             ->where('status', 'completed')
             ->whereYear('created_at', $month->year)
@@ -239,17 +335,23 @@ class DashboardController extends Controller
             ];
         }
 
-        // Top Performing Rachmat
+        // Top Performing Rachmat (including both direct orders and order items)
         $topRachmat = $designer->rachmat()
-            ->withCount('orders')
-            ->orderBy('orders_count', 'desc')
-            ->limit(5)
+            ->withCount([
+                'orders', // Direct orders (legacy)
+                'orderItems' // Orders through order_items table
+            ])
             ->get()
             ->map(function ($rachma) {
                 $rachmaData = $rachma->toArray();
                 $rachmaData['preview_image_urls'] = $rachma->preview_image_urls;
+                // Calculate total orders count (direct + order items)
+                $rachmaData['total_orders_count'] = $rachma->orders_count + $rachma->order_items_count;
                 return $rachmaData;
-            });
+            })
+            ->sortByDesc('total_orders_count')
+            ->take(5)
+            ->values();
 
         // Average Rating
         $averageRating = Rating::where('target_type', 'rachma')

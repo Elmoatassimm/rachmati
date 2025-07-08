@@ -107,36 +107,37 @@ export default function Show({ order }: Props) {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Rachma Details */}
-              <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-muted/30 shadow-xl rounded-2xl">
-                <CardHeader className="text-right">
-                  <CardTitle className="text-2xl font-bold text-foreground text-right">تفاصيل الرشمة</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-start gap-6">
-                    {/* Rachma Images */}
-                    <div className="flex-shrink-0">
-                      <div className="grid grid-cols-2 gap-2 w-32">
-                        {order.rachma?.preview_image_urls && order.rachma.preview_image_urls.length > 0 ? (
-                          order.rachma.preview_image_urls.slice(0, 4).map((imageUrl, index) => (
-                            <div key={index} className="w-14 h-14 rounded-lg overflow-hidden">
-                              <LazyImage
-                                src={imageUrl}
-                                alt={`${order.rachma.title} - Preview ${index + 1}`}
-                                className="w-full h-full object-cover"
-                                aspectRatio="1:1"
-                                priority={false}
-                                showSkeleton={true}
-                              />
+              {/* Single Rachma Details (Legacy) */}
+              {order.rachma && (
+                <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-muted/30 shadow-xl rounded-2xl">
+                  <CardHeader className="text-right">
+                    <CardTitle className="text-2xl font-bold text-foreground text-right">تفاصيل الرشمة</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-start gap-6">
+                      {/* Rachma Images */}
+                      <div className="flex-shrink-0">
+                        <div className="grid grid-cols-2 gap-2 w-32">
+                          {order.rachma?.preview_image_urls && order.rachma.preview_image_urls.length > 0 ? (
+                            order.rachma.preview_image_urls.slice(0, 4).map((imageUrl, index) => (
+                              <div key={index} className="w-14 h-14 rounded-lg overflow-hidden">
+                                <LazyImage
+                                  src={imageUrl}
+                                  alt={`${order.rachma.title} - Preview ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                  aspectRatio="1:1"
+                                  priority={false}
+                                  showSkeleton={true}
+                                />
+                              </div>
+                            ))
+                          ) : (
+                            <div className="col-span-2 w-full h-28 bg-gradient-to-br from-muted to-muted/70 rounded-lg flex items-center justify-center">
+                              <Package className="w-8 h-8 text-muted-foreground" />
                             </div>
-                          ))
-                        ) : (
-                          <div className="col-span-2 w-full h-28 bg-gradient-to-br from-muted to-muted/70 rounded-lg flex items-center justify-center">
-                            <Package className="w-8 h-8 text-muted-foreground" />
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
-                    </div>
 
                     {/* Rachma Info */}
                     <div className="flex-1 text-right">
@@ -172,6 +173,92 @@ export default function Show({ order }: Props) {
                   </div>
                 </CardContent>
               </Card>
+              )}
+
+              {/* Multi-item Orders */}
+              {order.order_items && order.order_items.length > 0 && (
+                <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-muted/30 shadow-xl rounded-2xl">
+                  <CardHeader className="text-right">
+                    <CardTitle className="text-2xl font-bold text-foreground text-right">
+                      عناصر الطلب ({order.order_items.length} رشمات)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {order.order_items.map((item, index) => (
+                      <div key={item.id} className="p-6 bg-gradient-to-r from-background to-muted/20 rounded-xl border border-border/50">
+                        <div className="flex items-start gap-6">
+                          {/* Item Images */}
+                          <div className="flex-shrink-0">
+                            <div className="grid grid-cols-2 gap-2 w-32">
+                              {item.rachma?.preview_image_urls && item.rachma.preview_image_urls.length > 0 ? (
+                                item.rachma.preview_image_urls.slice(0, 4).map((imageUrl, imgIndex) => (
+                                  <div key={imgIndex} className="w-14 h-14 rounded-lg overflow-hidden">
+                                    <LazyImage
+                                      src={imageUrl}
+                                      alt={`${item.rachma.title} - Preview ${imgIndex + 1}`}
+                                      className="w-full h-full object-cover"
+                                      aspectRatio="1:1"
+                                      priority={false}
+                                      showSkeleton={true}
+                                    />
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="col-span-2 w-full h-28 bg-gradient-to-br from-muted to-muted/70 rounded-lg flex items-center justify-center">
+                                  <Package className="w-8 h-8 text-muted-foreground" />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Item Info */}
+                          <div className="flex-1 text-right">
+                            <h4 className="text-lg font-bold text-foreground mb-3">
+                              {item.rachma?.title || item.rachma?.title_ar || 'رشمة غير محددة'}
+                            </h4>
+                            <p className="text-muted-foreground mb-4 leading-relaxed">
+                              {item.rachma?.description || item.rachma?.description_ar || ''}
+                            </p>
+
+                            <div className="mb-4">
+                              <p className="text-sm text-muted-foreground">السعر</p>
+                              <p className="text-lg font-bold text-green-600">{formatCurrency(item.price)}</p>
+                            </div>
+
+                            {/* Categories */}
+                            {item.rachma?.categories && item.rachma.categories.length > 0 && (
+                              <div className="mb-4">
+                                <p className="text-sm font-medium text-muted-foreground mb-2">التصنيفات:</p>
+                                <div className="flex flex-wrap gap-2 justify-end">
+                                  {item.rachma.categories.map((category) => (
+                                    <Badge key={category.id} variant="secondary" className="text-sm">
+                                      {category.name || category.name_ar}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Parts */}
+                            {item.rachma?.parts && item.rachma.parts.length > 0 && (
+                              <div>
+                                <p className="text-sm font-medium text-muted-foreground mb-2">القطع المطلوبة:</p>
+                                <div className="flex flex-wrap gap-2 justify-end">
+                                  {item.rachma.parts.map((part) => (
+                                    <Badge key={part.id} variant="outline" className="text-sm">
+                                      {part.name || part.name_ar}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Order Timeline */}
               <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-muted/30 shadow-xl rounded-2xl">
@@ -315,21 +402,37 @@ export default function Show({ order }: Props) {
                   <CardTitle className="text-xl font-bold text-foreground text-right">الإجراءات</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Link href={route('designer.rachmat.show', order.rachma?.id)}>
-                    <Button className="w-full" variant="outline">
-                      <Eye className="ml-2 h-4 w-4" />
-                      عرض الرشمة
-                    </Button>
-                  </Link>
-                  
+                  {/* Single rachma actions */}
+                  {order.rachma && (
+                    <Link href={route('designer.rachmat.show', order.rachma.id)}>
+                      <Button className="w-full" variant="outline">
+                        <Eye className="ml-2 h-4 w-4" />
+                        عرض الرشمة
+                      </Button>
+                    </Link>
+                  )}
+
+                  {/* Multi-item actions */}
+                  {order.order_items && order.order_items.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground">عرض الرشمات:</p>
+                      {order.order_items.map((item, index) => (
+                        <Link key={item.id} href={route('designer.rachmat.show', item.rachma?.id)}>
+                          <Button className="w-full" variant="outline" size="sm">
+                            <Eye className="ml-2 h-4 w-4" />
+                            {item.rachma?.title || item.rachma?.title_ar || `رشمة ${index + 1}`}
+                          </Button>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+
                   {order.status === 'completed' && (
                     <Button className="w-full" variant="outline">
                       <Download className="ml-2 h-4 w-4" />
                       تحميل الملفات
                     </Button>
                   )}
-
-                 
                 </CardContent>
               </Card>
             </div>

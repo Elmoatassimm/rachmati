@@ -122,12 +122,7 @@ export default function StoreIndex({ designer, socialMedia }: Props) {
             subtitle="قم بتخصيص متجرك وإدارة معلوماته"
           >
             <div className="flex items-center gap-4">
-              <Link href={route('designer.store.show')}>
-                <Button variant="outline">
-                  <Eye className="ml-2 h-4 w-4" />
-                  معاينة المتجر
-                </Button>
-              </Link>
+              
               <Badge variant="outline" className="text-sm">
                 <Store className="w-4 h-4 ml-1" />
                 {designer.store_name}

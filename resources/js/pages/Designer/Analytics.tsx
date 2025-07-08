@@ -10,9 +10,10 @@ import {
   Star,
   ArrowUpRight,
   ArrowDownRight,
-  Eye
+  Eye,
+  Layers
 } from 'lucide-react';
-import { Order } from '@/types';
+import { Order, Rachma, OrderItem } from '@/types';
 
 interface MonthlySales {
   month: string;
@@ -37,12 +38,14 @@ interface Props {
   stats: Stats;
   monthlySales: MonthlySales[];
   recentOrders: Order[];
+  topRachmat: (Rachma & { total_orders_count: number })[];
 }
 
-export default function Analytics({ 
-  stats, 
-  monthlySales = [], 
-  recentOrders = [] 
+export default function Analytics({
+  stats,
+  monthlySales = [],
+  recentOrders = [],
+  topRachmat = []
 }: Props) {
   const salesGrowth = stats.lastMonthSales > 0 
     ? ((stats.currentMonthSales - stats.lastMonthSales) / stats.lastMonthSales * 100).toFixed(1)
@@ -58,6 +61,51 @@ export default function Analytics({
       currency: 'DZD',
       minimumFractionDigits: 0,
     }).format(amount);
+  };
+
+  // Helper function to get rachmat names for both single and multi-item orders
+  const getRachmatDisplay = (order: Order) => {
+    // Single-item order (legacy)
+    if (order.rachma) {
+      return {
+        title: order.rachma.title_ar || order.rachma.title_fr || 'رشمة غير محددة',
+        subtitle: 'رشمة واحدة',
+        isMultiItem: false
+      };
+    }
+
+    // Multi-item order
+    if (order.order_items && order.order_items.length > 0) {
+      if (order.order_items.length === 1) {
+        const item = order.order_items[0];
+        return {
+          title: item.rachma?.title_ar || item.rachma?.title_fr || 'رشمة غير محددة',
+          subtitle: 'رشمة واحدة',
+          isMultiItem: false
+        };
+      } else {
+        // Multiple items - show first rachma name + count
+        const firstItem = order.order_items[0];
+        const firstName = firstItem.rachma?.title_ar || firstItem.rachma?.title_fr || 'رشمة';
+
+        // Truncate long names for better display
+        const truncatedName = firstName.length > 20 ? firstName.substring(0, 20) + '...' : firstName;
+
+        return {
+          title: `${truncatedName} + ${order.order_items.length - 1} أخرى`,
+          subtitle: `${order.order_items.length} رشمات متعددة`,
+          isMultiItem: true,
+          itemsCount: order.order_items.length
+        };
+      }
+    }
+
+    // Fallback
+    return {
+      title: 'طلب غير محدد',
+      subtitle: 'غير محدد',
+      isMultiItem: false
+    };
   };
 
   const getOrderStatusBadge = (status: string) => {
@@ -272,28 +320,39 @@ export default function Analytics({
             </CardHeader>
             <CardContent className="relative">
               <div className="space-y-2">
-                {recentOrders.map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-3 bg-gradient-to-r from-muted/50 to-muted/20 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/70 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                        #{order.id}
+                {recentOrders.map((order) => {
+                  const rachmatDisplay = getRachmatDisplay(order);
+                  return (
+                    <div key={order.id} className="flex items-center justify-between p-3 bg-gradient-to-r from-muted/50 to-muted/20 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/70 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                          #{order.id}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-foreground truncate">{rachmatDisplay.title}</span>
+                            {rachmatDisplay.isMultiItem && (
+                              <div className="flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                                <Layers className="w-3 h-3" />
+                                {rachmatDisplay.itemsCount}
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">{order.client?.name} • {rachmatDisplay.subtitle}</p>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-sm font-semibold text-foreground">{order.rachma?.title}</span>
-                        <p className="text-xs text-muted-foreground">{order.client?.name}</p>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <div className="text-sm font-bold text-foreground">{formatCurrency(order.amount)}</div>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(order.created_at).toLocaleDateString('ar-SA')}
+                          </p>
+                        </div>
+                        {getOrderStatusBadge(order.status)}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <div className="text-sm font-bold text-foreground">{formatCurrency(order.amount)}</div>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(order.created_at).toLocaleDateString('ar-SA')}
-                        </p>
-                      </div>
-                      {getOrderStatusBadge(order.status)}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>

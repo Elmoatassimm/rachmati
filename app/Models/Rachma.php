@@ -194,6 +194,14 @@ class Rachma extends Model
     }
 
     /**
+     * Get the order items for the rachma (for multi-item orders).
+     */
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    /**
      * Get the ratings for the rachma.
      */
     public function ratings(): HasMany

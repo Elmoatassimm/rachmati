@@ -61,20 +61,31 @@ class OrderController extends Controller
         // Get paginated orders
         $orders = $query->paginate(15)->withQueryString();
 
-        // Get statistics
+        // Get statistics (including both single and multi-item orders)
+        $baseQuery = function ($status = null) use ($designer) {
+            $query = Order::where(function ($q) use ($designer) {
+                // Orders with direct rachma_id belonging to this designer
+                $q->whereHas('rachma', function ($subQ) use ($designer) {
+                    $subQ->where('designer_id', $designer->id);
+                })
+                // OR orders with order items containing this designer's rachmat
+                ->orWhereHas('orderItems.rachma', function ($subQ) use ($designer) {
+                    $subQ->where('designer_id', $designer->id);
+                });
+            });
+
+            if ($status) {
+                $query->where('status', $status);
+            }
+
+            return $query;
+        };
+
         $stats = [
-            'total' => Order::whereHas('rachma', function ($q) use ($designer) {
-                $q->where('designer_id', $designer->id);
-            })->count(),
-            'completed' => Order::whereHas('rachma', function ($q) use ($designer) {
-                $q->where('designer_id', $designer->id);
-            })->where('status', 'completed')->count(),
-            'pending' => Order::whereHas('rachma', function ($q) use ($designer) {
-                $q->where('designer_id', $designer->id);
-            })->where('status', 'pending')->count(),
-            'processing' => Order::whereHas('rachma', function ($q) use ($designer) {
-                $q->where('designer_id', $designer->id);
-            })->where('status', 'processing')->count(),
+            'total' => $baseQuery()->count(),
+            'completed' => $baseQuery('completed')->count(),
+            'pending' => $baseQuery('pending')->count(),
+            'processing' => $baseQuery('processing')->count(),
         ];
 
         return Inertia::render('Designer/Orders/Index', [
@@ -96,11 +107,7 @@ class OrderController extends Controller
             abort(403, 'Designer profile not found');
         }
 
-        // Ensure the order belongs to this designer's rachma
-        if ($order->rachma->designer_id !== $designer->id) {
-            abort(403, 'Unauthorized access to order');
-        }
-
+        // Load order relationships first
         $order->load([
             'client',
             'rachma.categories',
@@ -108,6 +115,28 @@ class OrderController extends Controller
             'orderItems.rachma.categories',
             'orderItems.rachma.parts'
         ]);
+
+        // Check authorization for both single and multi-item orders
+        $hasAccess = false;
+
+        // For single-item orders (legacy)
+        if ($order->rachma && $order->rachma->designer_id === $designer->id) {
+            $hasAccess = true;
+        }
+
+        // For multi-item orders
+        if ($order->orderItems && $order->orderItems->count() > 0) {
+            foreach ($order->orderItems as $orderItem) {
+                if ($orderItem->rachma && $orderItem->rachma->designer_id === $designer->id) {
+                    $hasAccess = true;
+                    break;
+                }
+            }
+        }
+
+        if (!$hasAccess) {
+            abort(403, 'Unauthorized access to order');
+        }
 
         return Inertia::render('Designer/Orders/Show', [
             'order' => $order
