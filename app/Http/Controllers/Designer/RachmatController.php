@@ -69,7 +69,7 @@ class RachmatController extends Controller
             'totalEarnings' => $designer->rachmat()
                 ->join('orders', 'rachmat.id', '=', 'orders.rachma_id')
                 ->where('orders.status', 'completed')
-                ->sum('rachmat.price')
+                ->sum('orders.amount')
         ];
 
         return Inertia::render('Designer/Rachmat/Index', [

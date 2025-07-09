@@ -444,10 +444,17 @@ class RachmatController extends Controller
 
             $rachma = Rachma::with(['designer'])->findOrFail($rachmaId);
 
-            // Check if client has purchased this rachma
+            // Check if client has purchased this rachma (support both legacy and new order systems)
             $order = Order::where('client_id', $client->id)
-                ->where('rachma_id', $rachma->id)
                 ->where('status', 'completed')
+                ->where(function ($query) use ($rachma) {
+                    // Legacy single-item orders
+                    $query->where('rachma_id', $rachma->id)
+                        // OR new multi-item orders
+                        ->orWhereHas('orderItems', function ($subQuery) use ($rachma) {
+                            $subQuery->where('rachma_id', $rachma->id);
+                        });
+                })
                 ->first();
 
             if (!$order) {
@@ -555,9 +562,16 @@ class RachmatController extends Controller
                 ], 400);
             }
 
-            // Check if client has purchased this rachma and handle pending status case with clear message
+            // Check if client has purchased this rachma (support both legacy and new order systems)
             $order = Order::where('client_id', $client->id)
-                ->where('rachma_id', $rachma->id)
+                ->where(function ($query) use ($rachma) {
+                    // Legacy single-item orders
+                    $query->where('rachma_id', $rachma->id)
+                        // OR new multi-item orders
+                        ->orWhereHas('orderItems', function ($subQuery) use ($rachma) {
+                            $subQuery->where('rachma_id', $rachma->id);
+                        });
+                })
                 ->first();
 
             if (!$order) {
@@ -571,13 +585,6 @@ class RachmatController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'طلبك قيد المعالجة. يرجى الانتظار حتى يتم إكمال الطلب'
-                ], 403);
-            }
-
-            if (!$order) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'يجب شراء الرشمة أولاً للتمكن من إرسال الملفات'
                 ], 403);
             }
 

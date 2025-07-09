@@ -93,7 +93,7 @@ class DesignerController extends Controller
                 $query->where('status', 'completed');
             }], 'amount')
             ->get()
-            ->sum('orders_sum_amount') * 0.7; // 70% commission to designer
+            ->sum('orders_sum_amount'); // 100% commission to designer
         $unpaidEarnings = $totalEarnings - $designer->paid_earnings;
         $totalSales = $designer->rachmat()->withCount(['orders' => function($query) {
             $query->where('status', 'completed');
@@ -358,13 +358,13 @@ class DesignerController extends Controller
     {
         $designer->load(['user', 'rachmat']);
 
-        // Calculate total earnings from actual completed sales (70% commission)
+        // Calculate total earnings from actual completed sales (100% commission)
         $totalEarnings = $designer->rachmat()
             ->withSum(['orders' => function($query) {
                 $query->where('status', 'completed');
             }], 'amount')
             ->get()
-            ->sum('orders_sum_amount') * 0.7; // 70% commission to designer
+            ->sum('orders_sum_amount'); // 100% commission to designer
 
         // Update the designer's total earnings if needed
         if ($designer->earnings != $totalEarnings) {
