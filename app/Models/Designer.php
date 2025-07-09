@@ -125,11 +125,24 @@ class Designer extends Model
     }
 
     /**
-     * Get total sales count
+     * Get total sales count (including both legacy and new order systems)
      */
     public function getTotalSalesAttribute(): int
     {
-        return $this->rachmat()->withCount('orders')->get()->sum('orders_count');
+        // If total_sales is already set as an attribute (from controller calculation), use it
+        if (array_key_exists('total_sales', $this->attributes)) {
+            return (int) $this->attributes['total_sales'];
+        }
+
+        // Otherwise, calculate it dynamically (including both single and multi-item orders)
+        return \App\Models\Order::where(function ($q) {
+            $q->whereHas('rachma', function ($subQ) {
+                $subQ->where('designer_id', $this->id);
+            })
+            ->orWhereHas('orderItems.rachma', function ($subQ) {
+                $subQ->where('designer_id', $this->id);
+            });
+        })->where('status', 'completed')->count();
     }
 
     /**

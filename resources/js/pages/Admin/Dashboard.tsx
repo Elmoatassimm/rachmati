@@ -34,6 +34,8 @@ interface Stats {
   lastMonthOrders: number;
   currentMonthRevenue: number;
   lastMonthRevenue: number;
+  orderGrowth: number;
+  revenueGrowth: number;
 }
 
 interface RevenueData {
@@ -64,13 +66,9 @@ export default function Dashboard({
   pendingSubscriptions,
   topDesigners,
 }: Omit<Props, 'revenueData'>) {
-  const orderGrowth = stats.lastMonthOrders > 0 
-    ? ((stats.currentMonthOrders - stats.lastMonthOrders) / stats.lastMonthOrders * 100).toFixed(1)
-    : '0';
-  
-  const revenueGrowth = stats.lastMonthRevenue > 0 
-    ? ((stats.currentMonthRevenue - stats.lastMonthRevenue) / stats.lastMonthRevenue * 100).toFixed(1)
-    : '0';
+  // Use pre-calculated growth values from backend
+  const orderGrowth = stats.orderGrowth.toString();
+  const revenueGrowth = stats.revenueGrowth.toString();
 
   const getStatusBadge = (status: string) => {
     switch (status) {

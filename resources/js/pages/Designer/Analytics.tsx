@@ -32,6 +32,8 @@ interface Stats {
   lastMonthSales: number;
   currentMonthRevenue: number;
   lastMonthRevenue: number;
+  salesGrowth: number;
+  revenueGrowth: number;
 }
 
 interface Props {
@@ -47,13 +49,6 @@ export default function Analytics({
   recentOrders = [],
   topRachmat = []
 }: Props) {
-  const salesGrowth = stats.lastMonthSales > 0 
-    ? ((stats.currentMonthSales - stats.lastMonthSales) / stats.lastMonthSales * 100).toFixed(1)
-    : '0';
-  
-  const revenueGrowth = stats.lastMonthRevenue > 0 
-    ? ((stats.currentMonthRevenue - stats.lastMonthRevenue) / stats.lastMonthRevenue * 100).toFixed(1)
-    : '0';
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ar-DZ', {
@@ -179,15 +174,15 @@ export default function Analytics({
                     <span className="font-bold">{stats.currentMonthSales}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className={`w-4 h-4 rounded-md flex items-center justify-center ${Number(salesGrowth) >= 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
-                      {Number(salesGrowth) >= 0 ? (
+                    <div className={`w-4 h-4 rounded-md flex items-center justify-center ${stats.salesGrowth >= 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+                      {stats.salesGrowth >= 0 ? (
                         <ArrowUpRight className="w-2 h-2" />
                       ) : (
                         <ArrowDownRight className="w-2 h-2" />
                       )}
                     </div>
-                    <span className={`text-xs font-bold ${Number(salesGrowth) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                      {Number(salesGrowth) >= 0 ? '+' : ''}{salesGrowth}%
+                    <span className={`text-xs font-bold ${stats.salesGrowth >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                      {stats.salesGrowth >= 0 ? '+' : ''}{stats.salesGrowth}%
                     </span>
                   </div>
                 </div>
@@ -216,15 +211,15 @@ export default function Analytics({
                     <span className="font-bold text-xs">{formatCurrency(stats.lastMonthRevenue)}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className={`w-4 h-4 rounded-md flex items-center justify-center ${Number(revenueGrowth) >= 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
-                      {Number(revenueGrowth) >= 0 ? (
+                    <div className={`w-4 h-4 rounded-md flex items-center justify-center ${stats.revenueGrowth >= 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+                      {stats.revenueGrowth >= 0 ? (
                         <ArrowUpRight className="w-2 h-2" />
                       ) : (
                         <ArrowDownRight className="w-2 h-2" />
                       )}
                     </div>
-                    <span className={`text-xs font-bold ${Number(revenueGrowth) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                      {Number(revenueGrowth) >= 0 ? '+' : ''}{revenueGrowth}%
+                    <span className={`text-xs font-bold ${stats.revenueGrowth >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                      {stats.revenueGrowth >= 0 ? '+' : ''}{stats.revenueGrowth}%
                     </span>
                   </div>
                 </div>

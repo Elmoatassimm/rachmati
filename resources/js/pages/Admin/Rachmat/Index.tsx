@@ -47,6 +47,8 @@ interface Stats {
 interface ExtendedRachma extends Rachma {
   categories?: Category[];
   designer?: Designer;
+  orders_count?: number;
+  order_items_count?: number;
 }
 
 interface Props extends PageProps {
@@ -233,11 +235,18 @@ export default function Index({ rachmat, designers, categories, stats, filters }
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="المبيعات" />
       ),
-      cell: ({ row }) => (
-        <span className="font-semibold text-blue-600 text-sm text-right block">
-          {row.getValue("orders_count") || 0}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const rachma = row.original;
+        const directOrders = rachma.orders_count || 0;
+        const orderItems = rachma.order_items_count || 0;
+        const totalSales = directOrders + orderItems;
+
+        return (
+          <span className="font-semibold text-blue-600 text-sm text-right block">
+            {totalSales}
+          </span>
+        );
+      },
     },
     {
       accessorKey: "created_at",

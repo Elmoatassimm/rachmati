@@ -14,11 +14,7 @@ interface DesignerStatsCardsProps {
 }
 
 export function DesignerStatsCards({ stats }: DesignerStatsCardsProps) {
-  // Debug logging
-  console.log('DesignerStatsCards received stats:', stats);
-
   const formatCurrency = (amount: number) => {
-    console.log('Formatting currency for amount:', amount, 'type:', typeof amount);
     return new Intl.NumberFormat('ar-DZ', {
       style: 'currency',
       currency: 'DZD',
@@ -66,7 +62,7 @@ export function DesignerStatsCards({ stats }: DesignerStatsCardsProps) {
         <ModernStatsCard
           title="إجمالي الأرباح"
           value={formatCurrency(stats.totalEarnings)}
-          subtitle={`Total Earnings (Debug: ${stats.totalEarnings})`}
+          subtitle="Total Earnings"
           icon={DollarSign}
           colorScheme="yellow"
         />
@@ -77,7 +73,7 @@ export function DesignerStatsCards({ stats }: DesignerStatsCardsProps) {
         <ModernStatsCard
           title="الأرباح غير المدفوعة"
           value={formatCurrency(stats.unpaidEarnings)}
-          subtitle={`Unpaid Earnings (Debug: ${stats.unpaidEarnings})`}
+          subtitle="Unpaid Earnings"
           icon={DollarSign}
           colorScheme="orange"
         />

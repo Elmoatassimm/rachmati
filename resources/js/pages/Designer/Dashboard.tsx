@@ -349,7 +349,7 @@ export default function Dashboard({
                           </div>
                         </div>
                         <div className="text-right flex-shrink-0 ml-4">
-                          <p className="text-lg font-bold text-green-600">{rachma.orders_count || 0} مبيعة</p>
+                          <p className="text-lg font-bold text-green-600">{rachma.total_orders_count || 0} مبيعة</p>
                           <p className="text-sm text-muted-foreground">{formatCurrency(rachma.price)}</p>
                         </div>
                       </div>

@@ -584,14 +584,7 @@ export default function Show({ rachma, fileInfo, filesInfo, previewImagesInfo }:
                       <Trash2 className="h-4 w-4 mr-2" />
                       حذف الرشمة
                     </Button>
-                    <Button
-                      variant="destructive"
-                      className="w-full bg-red-800 hover:bg-red-900"
-                      onClick={handleForceDelete}
-                    >
-                      <AlertTriangle className="h-4 w-4 mr-2" />
-                      حذف نهائي (مع الطلبات)
-                    </Button>
+                   
                     <p className="text-xs text-muted-foreground text-center">
                       الحذف النهائي سيحذف الرشمة وجميع الطلبات المرتبطة بها نهائياً
                     </p>

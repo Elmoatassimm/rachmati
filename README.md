@@ -130,6 +130,14 @@ After running the seeders, you can login with:
 - `POST /api/auth/logout` - User logout
 - `GET /api/auth/user` - Get authenticated user
 
+### Designers
+- `GET /api/designers` - List active designers with filters
+  - Query Parameters:
+    - `search` (optional) - Search by store name
+    - `per_page` (optional) - Items per page (default: 15, max: 50)
+    - `paginate` (optional) - Set to 'false' to disable pagination
+  - Filters: Only returns designers with `subscription_status = 'active'` and valid `subscription_end_date`
+
 ### Rachmat
 - `GET /api/rachmat` - List rachmat with filters
 - `GET /api/rachmat/{id}` - Get rachma details

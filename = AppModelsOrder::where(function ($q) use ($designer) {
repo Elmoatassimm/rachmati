@@ -1,0 +1,17 @@
+[90m= [39m[34;4mApp\Models\Designer[39;24m {#6496
+    [34mid[39m: [35m1[39m,
+    [34muser_id[39m: [35m2[39m,
+    [34mstore_name[39m: "[32mhsdfjkstore[39m",
+    [34mstore_description[39m: [36mnull[39m,
+    [34msubscription_status[39m: "[32mactive[39m",
+    [34msubscription_start_date[39m: "[32m2025-07-09 13:42:04[39m",
+    [34msubscription_end_date[39m: "[32m2026-01-09 13:42:04[39m",
+    [34mpayment_proof_path[39m: [36mnull[39m,
+    [34mearnings[39m: [33m2499.97[39m,
+    [34mpaid_earnings[39m: [35m0[39m,
+    [34msubscription_price[39m: [36mnull[39m,
+    [34mpricing_plan_id[39m: [36mnull[39m,
+    [34mcreated_at[39m: "[32m2025-07-09 13:35:15[39m",
+    [34mupdated_at[39m: "[32m2025-07-09 15:28:25[39m",
+  }
+

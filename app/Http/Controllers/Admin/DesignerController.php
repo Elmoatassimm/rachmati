@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Designer;
+use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -29,8 +30,7 @@ class DesignerController extends Controller
     {
         $query = Designer::with(['user', 'rachmat'])
             ->withCount('rachmat')
-            ->selectRaw('designers.*, COALESCE(earnings, 0) - COALESCE(paid_earnings, 0) as unpaid_earnings, 
-                         (SELECT COUNT(*) FROM orders INNER JOIN rachmat ON orders.rachma_id = rachmat.id WHERE rachmat.designer_id = designers.id) as total_sales');
+            ->selectRaw('designers.*, COALESCE(earnings, 0) - COALESCE(paid_earnings, 0) as unpaid_earnings');
 
         // Filters
         if ($request->has('status') && $request->status !== 'all') {
@@ -57,13 +57,31 @@ class DesignerController extends Controller
 
         $designers = $query->paginate(15);
 
+        // Calculate total sales for each designer (including both legacy and new order systems)
+        $transformedCollection = $designers->getCollection()->map(function ($designer) {
+            // Calculate total sales including both single and multi-item orders
+            $totalSales = Order::where(function ($q) use ($designer) {
+                $q->whereHas('rachma', function ($subQ) use ($designer) {
+                    $subQ->where('designer_id', $designer->id);
+                })
+                ->orWhereHas('orderItems.rachma', function ($subQ) use ($designer) {
+                    $subQ->where('designer_id', $designer->id);
+                });
+            })->where('status', 'completed')->count();
+
+            $designer->total_sales = $totalSales;
+            return $designer;
+        });
+
+        $designers->setCollection($transformedCollection);
+
         // Calculate statistics
         $stats = [
             'total' => Designer::count(),
             'active' => Designer::where('subscription_status', 'active')->count(),
             'pending' => Designer::where('subscription_status', 'pending')->count(),
             'totalRachmat' => \App\Models\Rachma::count(),
-            'totalOrders' => \App\Models\Order::count(),
+            'totalOrders' => Order::count(),
         ];
 
         return Inertia::render('Admin/Designers/Index', [
@@ -87,20 +105,65 @@ class DesignerController extends Controller
             }
         ]);
 
-        // Calculate earnings and statistics
-        $totalEarnings = $designer->rachmat()
-            ->withSum(['orders' => function($query) {
-                $query->where('status', 'completed');
-            }], 'amount')
-            ->get()
-            ->sum('orders_sum_amount'); // 100% commission to designer
-        $unpaidEarnings = $totalEarnings - $designer->paid_earnings;
-        $totalSales = $designer->rachmat()->withCount(['orders' => function($query) {
-            $query->where('status', 'completed');
-        }])->get()->sum('orders_count');
+        // Calculate sales count for each rachma (including both legacy and new order systems)
+        $rachmatWithSales = $designer->rachmat->map(function ($rachma) {
+            // Calculate total sales for this specific rachma including both single and multi-item orders
+            $totalSales = Order::where(function ($q) use ($rachma) {
+                $q->where('rachma_id', $rachma->id) // Direct orders (legacy)
+                  ->orWhereHas('orderItems', function ($subQ) use ($rachma) {
+                      $subQ->where('rachma_id', $rachma->id); // Order items (new system)
+                  });
+            })->where('status', 'completed')->count();
+
+            $rachma->orders_count = $totalSales;
+            return $rachma;
+        });
+
+        // Calculate earnings and statistics (support both legacy and new order systems)
+        // Calculate total earnings from both direct orders and order items
+
+        // For direct orders (legacy system)
+        $directOrdersEarnings = Order::whereHas('rachma', function ($q) use ($designer) {
+            $q->where('designer_id', $designer->id);
+        })->where('status', 'completed')->sum('amount');
+
+        // For multi-item orders (new system) - sum only this designer's items
+        $orderItemsEarnings = \App\Models\OrderItem::whereHas('rachma', function ($q) use ($designer) {
+            $q->where('designer_id', $designer->id);
+        })->whereHas('order', function ($q) {
+            $q->where('status', 'completed');
+        })->sum('price');
+
+        $totalEarnings = $directOrdersEarnings + $orderItemsEarnings;
+
+        // Update the designer's stored earnings if they don't match
+        if ($designer->earnings != $totalEarnings) {
+            $designer->update(['earnings' => $totalEarnings]);
+            $designer->refresh();
+        }
+
+        $unpaidEarnings = (float) ($totalEarnings - $designer->paid_earnings);
+
+        // Calculate total sales including both single and multi-item orders
+        $totalSales = Order::where(function ($q) use ($designer) {
+            $q->whereHas('rachma', function ($subQ) use ($designer) {
+                $subQ->where('designer_id', $designer->id);
+            })
+            ->orWhereHas('orderItems.rachma', function ($subQ) use ($designer) {
+                $subQ->where('designer_id', $designer->id);
+            });
+        })->where('status', 'completed')->count();
 
         // Get active pricing plans for approval process
         $activePricingPlans = \App\Models\PricingPlan::active()->orderBy('duration_months')->get();
+
+        // Debug: Log the calculated values
+        \Log::info('Designer Show Stats', [
+            'designer_id' => $designer->id,
+            'totalEarnings' => $totalEarnings,
+            'unpaidEarnings' => $unpaidEarnings,
+            'totalSales' => $totalSales,
+        ]);
 
         return Inertia::render('Admin/Designers/Show', [
             'designer' => $designer,
@@ -109,7 +172,7 @@ class DesignerController extends Controller
                 'unpaidEarnings' => $unpaidEarnings,
                 'totalSales' => $totalSales,
             ],
-            'rachmat' => $designer->rachmat,
+            'rachmat' => $rachmatWithSales,
             'pricingPlans' => $activePricingPlans,
         ]);
     }
@@ -359,12 +422,21 @@ class DesignerController extends Controller
         $designer->load(['user', 'rachmat']);
 
         // Calculate total earnings from actual completed sales (100% commission)
-        $totalEarnings = $designer->rachmat()
-            ->withSum(['orders' => function($query) {
-                $query->where('status', 'completed');
-            }], 'amount')
-            ->get()
-            ->sum('orders_sum_amount'); // 100% commission to designer
+        // Include both direct orders and order items
+
+        // For direct orders (legacy system)
+        $directOrdersEarnings = Order::whereHas('rachma', function ($q) use ($designer) {
+            $q->where('designer_id', $designer->id);
+        })->where('status', 'completed')->sum('amount');
+
+        // For multi-item orders (new system) - sum only this designer's items
+        $orderItemsEarnings = \App\Models\OrderItem::whereHas('rachma', function ($q) use ($designer) {
+            $q->where('designer_id', $designer->id);
+        })->whereHas('order', function ($q) {
+            $q->where('status', 'completed');
+        })->sum('price');
+
+        $totalEarnings = $directOrdersEarnings + $orderItemsEarnings;
 
         // Update the designer's total earnings if needed
         if ($designer->earnings != $totalEarnings) {
@@ -401,7 +473,7 @@ class DesignerController extends Controller
             'paid_earnings.required' => 'مبلغ الأرباح المدفوعة مطلوب',
             'paid_earnings.numeric' => 'مبلغ الأرباح المدفوعة يجب أن يكون رقماً',
             'paid_earnings.min' => 'مبلغ الأرباح المدفوعة لا يمكن أن يكون أقل من صفر',
-            'paid_earnings.max' => 'مبلغ الأرباح المدفوعة لا يمكن أن يتجاوز إجمالي الأرباح (' . number_format($designer->earnings, 2) . ' دج)',
+            'paid_earnings.max' => 'مبلغ الأرباح المدفوعة لا يمكن أن يتجاوز إجمالي الأرباح (' . number_format((float) $designer->earnings, 2) . ' دج)',
             'admin_notes.max' => 'ملاحظات الإدارة لا يجب أن تتجاوز 1000 حرف',
         ]);
 

@@ -92,9 +92,11 @@ class DashboardController extends Controller
             ])
             ->get()
             ->map(function ($rachma) {
+                $rachmaData = $rachma->toArray();
+                $rachmaData['preview_image_urls'] = $rachma->preview_image_urls;
                 // Calculate total orders count (direct + order items)
-                $rachma->total_orders_count = $rachma->orders_count + $rachma->order_items_count;
-                return $rachma;
+                $rachmaData['total_orders_count'] = $rachma->orders_count + $rachma->order_items_count;
+                return $rachmaData;
             })
             ->sortByDesc('total_orders_count')
             ->take(5)
@@ -278,6 +280,33 @@ class DashboardController extends Controller
         ->whereMonth('created_at', $lastMonth->month)
         ->sum('amount');
 
+        // Calculate growth percentages with better logic
+        if ($lastMonthSales > 0) {
+            $salesGrowth = round((($currentMonthSales - $lastMonthSales) / $lastMonthSales) * 100, 1);
+        } elseif ($currentMonthSales > 0) {
+            $salesGrowth = 100; // Show 100% growth when there's current data but no previous data
+        } else {
+            $salesGrowth = 0; // No data in either month
+        }
+
+        if ($lastMonthRevenue > 0) {
+            $revenueGrowth = round((($currentMonthRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100, 1);
+        } elseif ($currentMonthRevenue > 0) {
+            $revenueGrowth = 100; // Show 100% growth when there's current data but no previous data
+        } else {
+            $revenueGrowth = 0; // No data in either month
+        }
+
+        // Debug: Log the values for testing
+        \Log::info('Analytics Debug', [
+            'currentMonthSales' => $currentMonthSales,
+            'lastMonthSales' => $lastMonthSales,
+            'salesGrowth' => $salesGrowth,
+            'currentMonthRevenue' => $currentMonthRevenue,
+            'lastMonthRevenue' => $lastMonthRevenue,
+            'revenueGrowth' => $revenueGrowth,
+        ]);
+
         // Recent Orders
         $recentOrders = Order::where(function ($q) use ($designer) {
             // Orders with direct rachma_id belonging to this designer
@@ -371,6 +400,8 @@ class DashboardController extends Controller
                 'lastMonthSales' => $lastMonthSales,
                 'currentMonthRevenue' => $currentMonthRevenue,
                 'lastMonthRevenue' => $lastMonthRevenue,
+                'salesGrowth' => $salesGrowth,
+                'revenueGrowth' => $revenueGrowth,
             ],
             'recentOrders' => $recentOrders,
             'monthlySales' => $monthlySales,

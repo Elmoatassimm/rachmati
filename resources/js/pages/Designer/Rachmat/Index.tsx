@@ -564,8 +564,9 @@ export default function Index({ rachmat, categories, filters, stats }: Props) {
                               <div className="flex items-center justify-between">
                                 <span className="text-muted-foreground">المبيعات</span>
                                 <div className="flex items-center gap-1 font-medium">
+                                  
+                                  {(rachma.orders_count || 0) + (rachma.order_items_count || 0)}
                                   <ShoppingCart className="h-3 w-3" />
-                                  {rachma.orders_count || 0}
                                 </div>
                               </div>
                               <div className="flex items-center justify-between">

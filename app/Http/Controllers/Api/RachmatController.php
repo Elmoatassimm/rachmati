@@ -485,7 +485,7 @@ class RachmatController extends Controller
             $zip = new ZipArchive;
             if ($zip->open($zipPath, ZipArchive::CREATE) === TRUE) {
                 foreach ($files as $file) {
-                    $filePath = storage_path('app/' . $file['path']);
+                    $filePath = Storage::disk('private')->path($file['path']);
                     if (file_exists($filePath)) {
                         $zip->addFile($filePath, $file['name']);
                     }
@@ -609,7 +609,7 @@ class RachmatController extends Controller
 
             $sentFiles = 0;
             foreach ($files as $file) {
-                $filePath = storage_path('app/' . $file['path']);
+                $filePath = Storage::disk('private')->path($file['path']);
                 if (file_exists($filePath)) {
                     $success = $this->telegramService->sendFile(
                         $client->telegram_chat_id,
@@ -619,6 +619,12 @@ class RachmatController extends Controller
                     if ($success) {
                         $sentFiles++;
                     }
+                } else {
+                    Log::warning('File not found for Telegram resend', [
+                        'file_path' => $file['path'],
+                        'full_path' => $filePath,
+                        'rachma_id' => $rachma->id
+                    ]);
                 }
             }
 
@@ -638,9 +644,12 @@ class RachmatController extends Controller
                 'total_files' => count($files)
             ]);
 
+            $isSuccess = $sentFiles > 0;
+            $statusCode = $isSuccess ? 200 : 500;
+
             return response()->json([
-                'success' => true,
-                'message' => $sentFiles > 0 
+                'success' => $isSuccess,
+                'message' => $isSuccess
                     ? "تم إرسال {$sentFiles} ملف عبر التليجرام بنجاح"
                     : 'فشل في إرسال الملفات عبر التليجرام',
                 'data' => [
@@ -648,7 +657,7 @@ class RachmatController extends Controller
                     'total_files' => count($files),
                     'rachma_title' => $rachma->localized_title
                 ]
-            ]);
+            ], $statusCode);
 
         } catch (\Exception $e) {
             Log::error('Failed to resend rachma files via Telegram', [

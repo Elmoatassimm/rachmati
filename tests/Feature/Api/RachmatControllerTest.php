@@ -48,7 +48,8 @@ class RachmatControllerTest extends TestCase
         // Create test rachma with files
         $this->rachma = Rachma::factory()->create([
             'designer_id' => $this->designer->id,
-            'title' => 'Test Rachma',
+            'title_ar' => 'رشمة تجريبية',
+            'title_fr' => 'Test Rachma',
             'price' => 100
         ]);
 
@@ -122,9 +123,7 @@ class RachmatControllerTest extends TestCase
     /** @test */
     public function client_can_download_rachma_files_after_purchase()
     {
-        $response = $this->postJson("/api/rachmat/{$this->rachma->id}/download-files", [
-            'client_id' => $this->client->id
-        ], $this->getAuthHeaders());
+        $response = $this->postJson("/api/rachmat/{$this->rachma->id}/download-files", [], $this->getAuthHeaders());
 
         $response->assertStatus(200)
             ->assertJson([
@@ -150,9 +149,7 @@ class RachmatControllerTest extends TestCase
         // Delete the order to simulate no purchase
         $this->order->delete();
 
-        $response = $this->postJson("/api/rachmat/{$this->rachma->id}/download-files", [
-            'client_id' => $this->client->id
-        ], $this->getAuthHeaders());
+        $response = $this->postJson("/api/rachmat/{$this->rachma->id}/download-files", [], $this->getAuthHeaders());
 
         $response->assertStatus(403)
             ->assertJson([
@@ -167,9 +164,7 @@ class RachmatControllerTest extends TestCase
         // Update rachma to have no files
         $this->rachma->update(['files' => []]);
 
-        $response = $this->postJson("/api/rachmat/{$this->rachma->id}/download-files", [
-            'client_id' => $this->client->id
-        ], $this->getAuthHeaders());
+        $response = $this->postJson("/api/rachmat/{$this->rachma->id}/download-files", [], $this->getAuthHeaders());
 
         $response->assertStatus(404)
             ->assertJson([

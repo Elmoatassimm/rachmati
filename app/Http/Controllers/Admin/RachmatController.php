@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Designer;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Rachma;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -68,10 +69,14 @@ class RachmatController extends Controller
      */
     public function index(Request $request)
     {
-        // Base query for fetching rachmat data
+        // Base query for fetching rachmat data (include both order systems)
         $rachmatQuery = Rachma::query()->with([
             'designer.user', 'categories',
-        ])->withCount(['orders', 'ratings']);
+        ])->withCount([
+            'orders', // Direct orders (legacy)
+            'orderItems', // Orders through order_items table
+            'ratings'
+        ]);
 
         // Apply filters to the main query
         $rachmatQuery = $this->applyRachmatFilters($request, $rachmatQuery);
@@ -87,12 +92,23 @@ class RachmatController extends Controller
 
         $rachmaIds = (clone $statsQuery)->pluck('id');
 
-        // Calculate stats based on the filtered data
+        // Calculate stats based on the filtered data (include both order systems)
+        $directOrders = Order::whereIn('rachma_id', $rachmaIds)->count();
+        $orderItemsOrders = OrderItem::whereIn('rachma_id', $rachmaIds)->count();
+        $totalOrders = $directOrders + $orderItemsOrders;
+
+        $directRevenue = Order::whereIn('rachma_id', $rachmaIds)->where('status', 'completed')->sum('amount');
+        $orderItemsRevenue = OrderItem::whereIn('rachma_id', $rachmaIds)
+            ->whereHas('order', function($q) {
+                $q->where('status', 'completed');
+            })->sum('price');
+        $totalRevenue = $directRevenue + $orderItemsRevenue;
+
         $stats = [
             'total_rachmat' => $rachmaIds->count(),
             'total_designers' => (clone $statsQuery)->distinct('designer_id')->count(),
-            'total_orders' => Order::whereIn('rachma_id', $rachmaIds)->count(),
-            'total_revenue' => Order::whereIn('rachma_id', $rachmaIds)->where('status', 'completed')->sum('amount'),
+            'total_orders' => $totalOrders,
+            'total_revenue' => $totalRevenue,
         ];
 
         // Get filter options
@@ -131,11 +147,38 @@ class RachmatController extends Controller
             'comments.user'
         ]);
 
-        // Load counts and sums for statistics
-        $rachma->loadCount('orders');
-        $rachma->loadSum(['orders' => function($query) {
-            $query->where('status', 'completed');
-        }], 'amount');
+        // Load comprehensive statistics including both order systems
+        $rachma->loadCount([
+            'orders', // Direct orders (legacy)
+            'orderItems', // Orders through order_items table
+            'ratings' // Ratings count
+        ]);
+
+        // Load average rating
+        $rachma->loadAvg('ratings', 'rating');
+
+        // Calculate comprehensive statistics
+        $directOrdersCount = $rachma->orders()->count();
+        $orderItemsCount = $rachma->orderItems()->count();
+        $totalOrders = $directOrdersCount + $orderItemsCount;
+
+        $completedDirectOrders = $rachma->orders()->where('status', 'completed')->count();
+        $completedOrderItems = $rachma->orderItems()->whereHas('order', function($q) {
+            $q->where('status', 'completed');
+        })->count();
+        $completedOrders = $completedDirectOrders + $completedOrderItems;
+
+        $directOrdersEarnings = $rachma->orders()->where('status', 'completed')->sum('amount');
+        $orderItemsEarnings = $rachma->orderItems()->whereHas('order', function($q) {
+            $q->where('status', 'completed');
+        })->sum('price');
+        $totalEarnings = $directOrdersEarnings + $orderItemsEarnings;
+
+        // Set calculated values on the rachma object for frontend access
+        $rachma->orders_count = $totalOrders;
+        $rachma->order_items_count = $orderItemsCount;
+        $rachma->orders_sum_amount = $totalEarnings;
+        $rachma->average_rating = (float) ($rachma->ratings_avg_rating ?? 0);
 
         // Get files information (supports both new multi-file and legacy single file)
         $filesInfo = [];
@@ -166,7 +209,7 @@ class RachmatController extends Controller
                 $fileInfo = [
                     'exists' => $primaryFile->exists(),
                     'size' => $primaryFile->getFileSize(),
-                    'last_modified' => $primaryFile->uploaded_at?->timestamp,
+                    'last_modified' => $primaryFile->uploaded_at ? $primaryFile->uploaded_at->timestamp : null,
                 ];
             }
         } else {
@@ -317,11 +360,26 @@ class RachmatController extends Controller
     public function destroy(Rachma $rachma)
     {
         try {
-            // Check if rachma has orders
-            $ordersCount = $rachma->orders()->count();
-            if ($ordersCount > 0) {
-                return redirect()->back()
-                    ->with('error', "لا يمكن حذف الرشمة لوجود {$ordersCount} طلبات عليها. يجب إلغاء الطلبات أولاً أو استخدام الحذف النهائي.");
+            // Check if rachma has orders (legacy system)
+            $legacyOrdersCount = $rachma->orders()->count();
+
+            // Check if rachma has order items (new system)
+            $orderItemsCount = OrderItem::where('rachma_id', $rachma->id)->count();
+
+            $totalOrdersCount = $legacyOrdersCount + $orderItemsCount;
+
+            if ($totalOrdersCount > 0) {
+                $errorMessage = "لا يمكن حذف الرشمة لوجود طلبات عليها:";
+                if ($legacyOrdersCount > 0) {
+                    $errorMessage .= " {$legacyOrdersCount} طلب مباشر";
+                }
+                if ($orderItemsCount > 0) {
+                    if ($legacyOrdersCount > 0) $errorMessage .= " و";
+                    $errorMessage .= " {$orderItemsCount} عنصر في طلبات";
+                }
+                $errorMessage .= ". يجب إلغاء الطلبات أولاً أو استخدام الحذف النهائي.";
+
+                return redirect()->back()->with('error', $errorMessage);
             }
 
             // Delete files
@@ -354,7 +412,7 @@ class RachmatController extends Controller
             return redirect()->route('admin.rachmat.index')
                             ->with('success', 'تم حذف الرشمة وجميع ملفاتها بنجاح');
         } catch (\Exception $e) {
-            \Log::error('Error deleting rachma: ' . $e->getMessage(), [
+            Log::error('Error deleting rachma: ' . $e->getMessage(), [
                 'rachma_id' => $rachma->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
@@ -371,9 +429,15 @@ class RachmatController extends Controller
     public function forceDestroy(Rachma $rachma)
     {
         try {
-            // Delete all orders first
-            $ordersCount = $rachma->orders()->count();
+            // Delete all orders first (legacy system)
+            $legacyOrdersCount = $rachma->orders()->count();
             $rachma->orders()->delete();
+
+            // Delete all order items (new system)
+            $orderItemsCount = OrderItem::where('rachma_id', $rachma->id)->count();
+            OrderItem::where('rachma_id', $rachma->id)->delete();
+
+            $totalOrdersCount = $legacyOrdersCount + $orderItemsCount;
 
         // Delete files
         if ($rachma->file_path && Storage::disk('private')->exists($rachma->file_path)) {
@@ -402,10 +466,17 @@ class RachmatController extends Controller
             // Delete the rachma
             $rachma->delete();
 
-            return redirect()->route('admin.rachmat.index')
-                            ->with('warning', "تم حذف الرشمة نهائياً مع {$ordersCount} طلب مرتبط بها");
+            $orderMessage = "تم حذف الرشمة نهائياً";
+            if ($totalOrdersCount > 0) {
+                $orderMessage .= " مع {$totalOrdersCount} طلب مرتبط بها";
+                if ($legacyOrdersCount > 0 && $orderItemsCount > 0) {
+                    $orderMessage .= " ({$legacyOrdersCount} طلب مباشر و {$orderItemsCount} عنصر طلب)";
+                }
+            }
+
+            return redirect()->route('admin.rachmat.index')->with('warning', $orderMessage);
         } catch (\Exception $e) {
-            \Log::error('Error force deleting rachma: ' . $e->getMessage(), [
+            Log::error('Error force deleting rachma: ' . $e->getMessage(), [
                 'rachma_id' => $rachma->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()

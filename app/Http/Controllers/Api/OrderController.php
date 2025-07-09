@@ -14,29 +14,17 @@ use Illuminate\Support\Facades\DB;
 class OrderController extends Controller
 {
     /**
-     * Create a new order (supports both single and multiple items)
+     * Create a new order (items-only approach)
      */
     public function store(Request $request): JsonResponse
     {
-        // Support both single item (rachma_id) and multiple items (items array)
-        $isSingleItem = $request->has('rachma_id');
-
-        if ($isSingleItem) {
-            // Single item order (backward compatibility)
-            $validator = Validator::make($request->all(), [
-                'rachma_id' => 'required|exists:rachmat,id',
-                'payment_method' => 'required|in:ccp,baridi_mob,dahabiya',
-                'payment_proof' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-            ]);
-        } else {
-            // Multi-item order
-            $validator = Validator::make($request->all(), [
-                'items' => 'required|array|min:1|max:20',
-                'items.*.rachma_id' => 'required|exists:rachmat,id',
-                'payment_method' => 'required|in:ccp,baridi_mob,dahabiya',
-                'payment_proof' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-            ]);
-        }
+        // Only support items array approach
+        $validator = Validator::make($request->all(), [
+            'items' => 'required|array|min:1|max:20',
+            'items.*.rachma_id' => 'required|exists:rachmat,id',
+            'payment_method' => 'required|in:ccp,baridi_mob,dahabiya',
+            'payment_proof' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
 
         if ($validator->fails()) {
             return response()->json([
@@ -53,15 +41,26 @@ class OrderController extends Controller
             $orderItems = [];
             $totalAmount = 0;
 
-            if ($isSingleItem) {
-                // Single item order (backward compatibility)
-                $rachma = Rachma::with('designer')->findOrFail($request->rachma_id);
+            // Get all rachmat for the items
+            $rachmaIds = collect($request->items)->pluck('rachma_id');
+            $rachmat = Rachma::with('designer')->whereIn('id', $rachmaIds)->get()->keyBy('id');
 
-                // Check if rachma is available
-                if ($rachma->designer->subscription_status !== 'active') {
+            foreach ($request->items as $item) {
+                $rachma = $rachmat->get($item['rachma_id']);
+
+                if (!$rachma) {
+                    DB::rollBack();
                     return response()->json([
                         'success' => false,
-                        'message' => 'This rachma is not available'
+                        'message' => "Rachma with ID {$item['rachma_id']} not found"
+                    ], 400);
+                }
+
+                if ($rachma->designer->subscription_status !== 'active') {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Rachma '{$rachma->title_ar}' is not available"
                     ], 400);
                 }
 
@@ -69,46 +68,15 @@ class OrderController extends Controller
                     'rachma_id' => $rachma->id,
                     'price' => $rachma->price,
                 ];
-                $totalAmount = $rachma->price;
-            } else {
-                // Multi-item order
-                $rachmaIds = collect($request->items)->pluck('rachma_id');
-                $rachmat = Rachma::with('designer')->whereIn('id', $rachmaIds)->get()->keyBy('id');
-
-                foreach ($request->items as $item) {
-                    $rachma = $rachmat->get($item['rachma_id']);
-
-                    if (!$rachma) {
-                        DB::rollBack();
-                        return response()->json([
-                            'success' => false,
-                            'message' => "Rachma with ID {$item['rachma_id']} not found"
-                        ], 400);
-                    }
-
-                    if ($rachma->designer->subscription_status !== 'active') {
-                        DB::rollBack();
-                        return response()->json([
-                            'success' => false,
-                            'message' => "Rachma '{$rachma->title}' is not available"
-                        ], 400);
-                    }
-
-                    $orderItems[] = [
-                        'rachma_id' => $rachma->id,
-                        'price' => $rachma->price,
-                    ];
-                    $totalAmount += $rachma->price;
-                }
+                $totalAmount += $rachma->price;
             }
 
             // Store payment proof
             $paymentProofPath = $request->file('payment_proof')->store('payment_proofs', 'public');
 
-            // Create order
+            // Create order (items-only approach, no rachma_id)
             $order = Order::create([
                 'client_id' => $request->user()->id,
-                'rachma_id' => $isSingleItem ? $request->rachma_id : null, // For backward compatibility
                 'amount' => $totalAmount,
                 'payment_method' => $request->payment_method,
                 'payment_proof_path' => $paymentProofPath,
@@ -148,28 +116,25 @@ class OrderController extends Controller
     {
         try {
             $order = Order::with([
-                'rachma.designer.user',
                 'client',
                 'orderItems.rachma.designer.user'
             ])
                 ->where('client_id', request()->user()->id)
                 ->findOrFail($id);
 
-            // Add URL attributes to the order and rachma
+            // Add URL attributes to the order
             $orderData = $order->toArray();
             $orderData['payment_proof_url'] = $order->payment_proof_url;
 
-            // Add preview image URLs for backward compatibility (single rachma)
-            if ($order->rachma) {
-                $orderData['rachma']['preview_image_urls'] = $order->rachma->preview_image_urls;
-            }
-
             // Add preview image URLs for order items
-            if ($order->orderItems) {
+            if (isset($orderData['order_items']) && is_array($orderData['order_items'])) {
                 foreach ($orderData['order_items'] as $index => $item) {
                     if (isset($item['rachma'])) {
-                        $rachma = $order->orderItems[$index]->rachma;
-                        $orderData['order_items'][$index]['rachma']['preview_image_urls'] = $rachma->preview_image_urls;
+                        // Get the rachma from the loaded relationship
+                        $orderItem = $order->orderItems->get($index);
+                        if ($orderItem && $orderItem->rachma) {
+                            $orderData['order_items'][$index]['rachma']['preview_image_urls'] = $orderItem->rachma->preview_image_urls;
+                        }
                     }
                 }
             }
@@ -195,7 +160,6 @@ class OrderController extends Controller
     {
         try {
             $query = Order::with([
-                'rachma.designer.user',
                 'orderItems.rachma.designer.user'
             ])
                 ->where('client_id', $request->user()->id);
@@ -223,17 +187,14 @@ class OrderController extends Controller
                 $orderData = $order->toArray();
                 $orderData['payment_proof_url'] = $order->payment_proof_url;
 
-                // Add preview URLs for backward compatibility (single rachma)
-                if ($order->rachma) {
-                    $orderData['rachma']['preview_image_urls'] = $order->rachma->preview_image_urls;
-                }
-
                 // Add preview URLs for order items
-                if ($order->orderItems) {
+                if (isset($orderData['order_items']) && is_array($orderData['order_items'])) {
                     foreach ($orderData['order_items'] as $index => $item) {
                         if (isset($item['rachma'])) {
-                            $rachma = $order->orderItems[$index]->rachma;
-                            $orderData['order_items'][$index]['rachma']['preview_image_urls'] = $rachma->preview_image_urls;
+                            $orderItem = $order->orderItems->get($index);
+                            if ($orderItem && $orderItem->rachma) {
+                                $orderData['order_items'][$index]['rachma']['preview_image_urls'] = $orderItem->rachma->preview_image_urls;
+                            }
                         }
                     }
                 }

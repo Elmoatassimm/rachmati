@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\RachmatController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\RatingController;
+use App\Http\Controllers\Api\DesignerController;
 use App\Http\Controllers\Api\AdminPaymentInfoController;
 use App\Http\Controllers\Api\DesignerSubscriptionRequestController;
 use App\Http\Controllers\Api\AdminSubscriptionRequestController;
@@ -36,6 +37,9 @@ Route::get('/categories', [RachmatController::class, 'categories']);
 
 // Popular rachmat
 Route::get('/popular', [RachmatController::class, 'popular']);
+
+// Active designers list
+Route::get('/designers', [DesignerController::class, 'index']);
 
 // Designer details
 Route::get('/designers/{id}', [RachmatController::class, 'designer']);

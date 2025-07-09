@@ -29,7 +29,16 @@ class RachmatController extends Controller
 
         $query = $designer->rachmat()
             ->with(['categories'])
-            ->withCount('orders')
+            ->withCount([
+                'orders as orders_count' => function ($query) {
+                    $query->where('status', 'completed');
+                }, // Direct orders (legacy) - completed only
+                'orderItems as order_items_count' => function ($query) {
+                    $query->whereHas('order', function ($subQuery) {
+                        $subQuery->where('status', 'completed');
+                    });
+                } // Orders through order_items table - completed only
+            ])
             ->withAvg('ratings', 'rating');
 
         // Filters
@@ -61,15 +70,41 @@ class RachmatController extends Controller
 
         $categories = Category::all();
 
-        // Calculate stats
+        // Calculate stats including both direct orders and order items
+        $totalRachmat = $designer->rachmat()->count();
+
+        // Calculate total sales including both single and multi-item orders
+        $totalSales = \App\Models\Order::where(function ($q) use ($designer) {
+            // Orders with direct rachma_id belonging to this designer
+            $q->whereHas('rachma', function ($subQ) use ($designer) {
+                $subQ->where('designer_id', $designer->id);
+            })
+            // OR orders with order items containing this designer's rachmat
+            ->orWhereHas('orderItems.rachma', function ($subQ) use ($designer) {
+                $subQ->where('designer_id', $designer->id);
+            });
+        })->where('status', 'completed')->count();
+
+        // Calculate total earnings from both direct orders and order items
+        // For direct orders (legacy system)
+        $directOrdersEarnings = \App\Models\Order::whereHas('rachma', function ($q) use ($designer) {
+            $q->where('designer_id', $designer->id);
+        })->where('status', 'completed')->sum('amount');
+
+        // For multi-item orders (new system) - sum only this designer's items
+        $orderItemsEarnings = \App\Models\OrderItem::whereHas('rachma', function ($q) use ($designer) {
+            $q->where('designer_id', $designer->id);
+        })->whereHas('order', function ($q) {
+            $q->where('status', 'completed');
+        })->sum('price');
+
+        $totalEarnings = $directOrdersEarnings + $orderItemsEarnings;
+
         $stats = [
-            'total' => $designer->rachmat()->count(),
-            'active' => $designer->rachmat()->count(), // All are active since is_active removed
-            'totalSales' => $designer->rachmat()->withCount('orders')->get()->sum('orders_count'),
-            'totalEarnings' => $designer->rachmat()
-                ->join('orders', 'rachmat.id', '=', 'orders.rachma_id')
-                ->where('orders.status', 'completed')
-                ->sum('orders.amount')
+            'total' => $totalRachmat,
+            'active' => $totalRachmat, // All are active since is_active removed
+            'totalSales' => $totalSales,
+            'totalEarnings' => $totalEarnings
         ];
 
         return Inertia::render('Designer/Rachmat/Index', [
@@ -233,11 +268,27 @@ class RachmatController extends Controller
             $query->with('client')->latest()->take(5);
         }]);
 
-        // Calculate statistics
+        // Calculate statistics including both direct orders and order items
+        $directOrdersCount = $rachma->orders()->count();
+        $orderItemsCount = $rachma->orderItems()->count();
+        $totalOrders = $directOrdersCount + $orderItemsCount;
+
+        $completedDirectOrders = $rachma->orders()->where('status', 'completed')->count();
+        $completedOrderItems = $rachma->orderItems()->whereHas('order', function($q) {
+            $q->where('status', 'completed');
+        })->count();
+        $completedOrders = $completedDirectOrders + $completedOrderItems;
+
+        $directOrdersEarnings = $rachma->orders()->where('status', 'completed')->sum('amount');
+        $orderItemsEarnings = $rachma->orderItems()->whereHas('order', function($q) {
+            $q->where('status', 'completed');
+        })->sum('price');
+        $totalEarnings = $directOrdersEarnings + $orderItemsEarnings;
+
         $stats = [
-            'total_orders' => $rachma->orders()->count(),
-            'completed_orders' => $rachma->orders()->where('status', 'completed')->count(),
-            'total_earnings' => $rachma->orders()->where('status', 'completed')->sum('amount'),
+            'total_orders' => $totalOrders,
+            'completed_orders' => $completedOrders,
+            'total_earnings' => $totalEarnings,
             'average_rating' => (float) ($rachma->average_rating ?? 0),
         ];
 
@@ -260,8 +311,11 @@ class RachmatController extends Controller
             abort(403);
         }
 
-        // Check if rachma has orders
-        if ($rachma->orders()->count() > 0) {
+        // Check if rachma has orders (both direct orders and order items)
+        $directOrdersCount = $rachma->orders()->count();
+        $orderItemsCount = $rachma->orderItems()->count();
+
+        if ($directOrdersCount > 0 || $orderItemsCount > 0) {
             return redirect()->back()
                 ->with('error', 'لا يمكن حذف الرشمة لوجود طلبات عليها');
         }

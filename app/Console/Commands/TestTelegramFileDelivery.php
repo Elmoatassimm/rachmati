@@ -151,14 +151,22 @@ class TestTelegramFileDelivery extends Command
             return null;
         }
 
-        return Order::create([
+        // Create order using new items-only approach
+        $order = Order::create([
             'client_id' => $testUser->id,
-            'rachma_id' => $rachma->id,
             'amount' => $rachma->price ?? 1000,
             'payment_method' => 'ccp',
             'payment_proof_path' => 'test/payment_proof.jpg',
             'status' => 'pending',
         ]);
+
+        // Create order item
+        $order->orderItems()->create([
+            'rachma_id' => $rachma->id,
+            'price' => $rachma->price ?? 1000,
+        ]);
+
+        return $order;
     }
 
     private function validateOrderFiles(Order $order): array

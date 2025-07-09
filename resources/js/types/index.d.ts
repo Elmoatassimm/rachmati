@@ -168,6 +168,8 @@ export interface Rachma {
     average_rating: number;
     ratings_count: number;
     orders_count?: number;
+    order_items_count?: number;
+    total_orders_count?: number;
     orders_sum_amount?: number;
     is_active: boolean;
     created_at: string;
