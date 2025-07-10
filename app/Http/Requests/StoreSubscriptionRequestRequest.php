@@ -39,11 +39,6 @@ class StoreSubscriptionRequestRequest extends FormRequest
                 File::image()
                     ->max(5 * 1024) // 5MB max
                     ->types(['jpeg', 'jpg', 'png', 'gif', 'webp'])
-            ],
-            'requested_start_date' => [
-                'required',
-                'date',
-                'after_or_equal:today'
             ]
         ];
     }

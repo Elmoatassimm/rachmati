@@ -25,7 +25,6 @@ export default function Create({ pricingPlans }: Props) {
         pricing_plan_id: '',
         notes: '',
         payment_proof: null as File | null,
-        requested_start_date: new Date().toISOString().split('T')[0], // Today's date as default
     });
 
     const selectedPlan = pricingPlans.find(plan => plan.id.toString() === data.pricing_plan_id);
@@ -155,19 +154,7 @@ export default function Create({ pricingPlans }: Props) {
                                         )}
                                     </div>
 
-                                    <div>
-                                        <Label htmlFor="requested_start_date">تاريخ بداية الاشتراك المطلوب *</Label>
-                                        <Input
-                                            id="requested_start_date"
-                                            type="date"
-                                            value={data.requested_start_date}
-                                            onChange={(e) => setData('requested_start_date', e.target.value)}
-                                            min={new Date().toISOString().split('T')[0]}
-                                        />
-                                        {errors.requested_start_date && (
-                                            <p className="text-sm text-red-600 mt-1">{errors.requested_start_date}</p>
-                                        )}
-                                    </div>
+                                
 
                                     <div>
                                         <Label htmlFor="notes">ملاحظات (اختياري)</Label>

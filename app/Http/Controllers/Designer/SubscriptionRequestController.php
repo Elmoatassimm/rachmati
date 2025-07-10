@@ -81,7 +81,7 @@ class SubscriptionRequestController extends Controller
             'pricing_plan_id' => $validated['pricing_plan_id'],
             'notes' => $validated['notes'] ?? null,
             'subscription_price' => $pricingPlan->price,
-            'requested_start_date' => $validated['requested_start_date'],
+            'requested_start_date' => now(),
             'payment_proof_path' => $paymentProofData['path'] ?? null,
             'payment_proof_original_name' => $paymentProofData['original_name'] ?? null,
             'payment_proof_size' => $paymentProofData['size'] ?? null,
