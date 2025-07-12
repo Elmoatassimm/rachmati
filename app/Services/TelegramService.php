@@ -866,45 +866,99 @@ class TelegramService
      */
     private function prepareFileMessageWithIndex(Order $order, int $fileIndex, int $totalFiles): string
     {
-        $message = "🎉 *تم تأكيد طلبك / Votre commande est confirmée*\n\n";
-        $message .= "📋 *تفاصيل الطلب / Détails de la commande:*\n";
-        $message .= "• رقم الطلب / N° commande: `{$order->id}`\n";
+        // Header
+        $message = "🎉 *تم تأكيد طلبك*\n\n";
+
+        // Order ID
+        $message .= "• *رقم الطلب:* `{$order->id}`\n\n";
 
         // Add file index information if multiple files
         if ($totalFiles > 1) {
-            $message .= "• الملف / Fichier: {$fileIndex}/{$totalFiles}\n";
+            $message .= "• *الملف:* {$fileIndex}/{$totalFiles}\n\n";
         }
 
         // Handle both single-item and multi-item orders
         if ($order->rachma_id && $order->rachma) {
             // Single-item order (backward compatibility)
-            $rachma = $order->rachma;
-            $designer = $rachma->designer;
-
-            $message .= "• اسم الرشمة / Nom Rachma: {$rachma->title}\n";
-            $message .= "• المصمم / Designer: {$designer->store_name}\n";
-            $message .= "• الحجم / Taille: {$rachma->size}\n";
-            $message .= "• عدد الغرز / Nombre de points: {$rachma->gharazat}\n";
+            $rachma = $order->rachma->load(['designer', 'parts']);
+            $message .= $this->formatRachmaDetails($rachma, 1);
         } else {
             // Multi-item order
-            $orderItems = $order->orderItems()->with('rachma.designer')->get();
-            $itemCount = $orderItems->count();
+            $orderItems = $order->orderItems()->with(['rachma.designer', 'rachma.parts'])->get();
 
-            $message .= "• عدد الرشمات / Nombre de Rachmas: {$itemCount}\n";
-
-            // List all items
             foreach ($orderItems as $index => $item) {
-                $rachma = $item->rachma;
-                $designer = $rachma->designer;
-                $itemNum = $index + 1;
+                $rachmaNumber = $index + 1;
+                $message .= $this->formatRachmaDetails($item->rachma, $rachmaNumber);
 
-                $message .= "  {$itemNum}. {$rachma->title} - {$designer->store_name}\n";
+                // Add spacing between rachmat except for the last one
+                if ($index < $orderItems->count() - 1) {
+                    $message .= "\n";
+                }
             }
         }
 
-        $message .= "• المبلغ / Montant: " . number_format((float)$order->amount, 0) . " DA\n\n";
-        $message .= "📎 *الملف المرفق / Fichier joint*\n";
-        $message .= "شكراً لاختيارك منصة رشماتي / Merci d'avoir choisi Rashmaati Platform! 🌟";
+        $message .= "\n📎 *الملف المرفق*\n";
+        $message .= "شكراً لاختيارك منصة رشماتي! 🌟";
+
+        return $message;
+    }
+
+    /**
+     * Format detailed rachma information for Telegram message
+     */
+    private function formatRachmaDetails(Rachma $rachma, int $rachmaNumber): string
+    {
+        $message = "🎨 *الرشمة {$rachmaNumber}*\n";
+        $message .= "• {$rachma->title} - متجر {$rachma->designer->store_name}\n\n";
+
+        // Get parts for this rachma
+        $parts = $rachma->parts()->orderBy('order')->get();
+
+        if ($parts->count() > 0) {
+            foreach ($parts as $index => $part) {
+                $partNumber = $index + 1;
+                $message .= "📐 *الجزء {$partNumber}*\n";
+                $message .= "• *تفاصيل الجزء:* {$part->name}\n";
+
+                // Format dimensions and stitch count
+                $dimensions = [];
+                if ($part->length) {
+                    $dimensions[] = "الطول: " . number_format($part->length, 1) . " سم";
+                }
+                if ($part->height) {
+                    $dimensions[] = "العرض: " . number_format($part->height, 1) . " سم";
+                }
+                if ($part->stitches) {
+                    $dimensions[] = "عدد الغرز: " . number_format($part->stitches);
+                }
+
+                if (!empty($dimensions)) {
+                    $message .= "• " . implode(" | ", $dimensions) . "\n";
+                }
+
+                // Add spacing between parts except for the last one
+                if ($index < $parts->count() - 1) {
+                    $message .= "\n";
+                }
+            }
+        } else {
+            // Fallback if no parts are defined - show rachma-level dimensions if available
+            $message .= "📐 *تفاصيل الرشمة*\n";
+
+            $dimensions = [];
+            if (isset($rachma->width) && $rachma->width) {
+                $dimensions[] = "العرض: " . number_format($rachma->width, 1) . " سم";
+            }
+            if (isset($rachma->height) && $rachma->height) {
+                $dimensions[] = "الطول: " . number_format($rachma->height, 1) . " سم";
+            }
+
+            if (!empty($dimensions)) {
+                $message .= "• " . implode(" | ", $dimensions) . "\n";
+            } else {
+                $message .= "• تفاصيل الأبعاد غير متوفرة\n";
+            }
+        }
 
         return $message;
     }
@@ -923,16 +977,52 @@ class TelegramService
     public function sendOrderConfirmation(Order $order): bool
     {
         $client = $order->client;
-        
+
         if (!$client->telegram_chat_id) {
             return false;
         }
 
-        $message = "✅ *تم تأكيد طلبك / Votre commande est confirmée*\n\n";
-        $message .= "رقم الطلب / N° commande: `{$order->id}`\n";
-        $message .= "سيتم إرسال الملف قريباً / Le fichier sera envoyé bientôt 📎";
+        // Use the detailed Arabic format for confirmation
+        $message = $this->prepareDetailedOrderConfirmation($order);
 
         return $this->sendNotification($client->telegram_chat_id, $message);
+    }
+
+    /**
+     * Prepare detailed order confirmation message in Arabic
+     */
+    private function prepareDetailedOrderConfirmation(Order $order): string
+    {
+        // Header
+        $message = "🎉 *تم تأكيد طلبك*\n\n";
+
+        // Order ID
+        $message .= "• *رقم الطلب:* `{$order->id}`\n\n";
+
+        // Handle both single-item and multi-item orders
+        if ($order->rachma_id && $order->rachma) {
+            // Single-item order (backward compatibility)
+            $rachma = $order->rachma->load(['designer', 'parts']);
+            $message .= $this->formatRachmaDetails($rachma, 1);
+        } else {
+            // Multi-item order
+            $orderItems = $order->orderItems()->with(['rachma.designer', 'rachma.parts'])->get();
+
+            foreach ($orderItems as $index => $item) {
+                $rachmaNumber = $index + 1;
+                $message .= $this->formatRachmaDetails($item->rachma, $rachmaNumber);
+
+                // Add spacing between rachmat except for the last one
+                if ($index < $orderItems->count() - 1) {
+                    $message .= "\n";
+                }
+            }
+        }
+
+        $message .= "\n📎 *سيتم إرسال الملفات قريباً*\n";
+        $message .= "شكراً لاختيارك منصة رشماتي! 🌟";
+
+        return $message;
     }
 
     /**
@@ -941,19 +1031,41 @@ class TelegramService
     public function sendOrderRejection(Order $order, string $reason = null): bool
     {
         $client = $order->client;
-        
+
         if (!$client->telegram_chat_id) {
             return false;
         }
 
-        $message = "❌ *تم رفض طلبك / Votre commande a été rejetée*\n\n";
-        $message .= "رقم الطلب / N° commande: `{$order->id}`\n";
-        
-        if ($reason) {
-            $message .= "السبب / Raison: {$reason}\n";
+        // Use detailed Arabic format for rejection
+        $message = "❌ *تم رفض طلبك*\n\n";
+        $message .= "• *رقم الطلب:* `{$order->id}`\n\n";
+
+        // Add detailed order information
+        if ($order->rachma_id && $order->rachma) {
+            // Single-item order (backward compatibility)
+            $rachma = $order->rachma->load(['designer', 'parts']);
+            $message .= $this->formatRachmaDetails($rachma, 1);
+        } else {
+            // Multi-item order
+            $orderItems = $order->orderItems()->with(['rachma.designer', 'rachma.parts'])->get();
+
+            foreach ($orderItems as $index => $item) {
+                $rachmaNumber = $index + 1;
+                $message .= $this->formatRachmaDetails($item->rachma, $rachmaNumber);
+
+                // Add spacing between rachmat except for the last one
+                if ($index < $orderItems->count() - 1) {
+                    $message .= "\n";
+                }
+            }
         }
-        
-        $message .= "يرجى التواصل مع الإدارة / Veuillez contacter l'administration";
+
+        if ($reason) {
+            $message .= "\n❌ *سبب الرفض:* {$reason}\n";
+        }
+
+        $message .= "\n📞 *يرجى التواصل مع الإدارة*\n";
+        $message .= "نعتذر عن الإزعاج 🙏";
 
         return $this->sendNotification($client->telegram_chat_id, $message);
     }

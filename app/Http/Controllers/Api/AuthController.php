@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Designer;
+use App\Models\PasswordResetCode;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+use App\Notifications\Auth\ApiPasswordResetNotification;
 
 class AuthController extends Controller
 {
@@ -193,6 +195,164 @@ class AuthController extends Controller
     }
 
     /**
+     * Send password reset verification code
+     */
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+        ], [
+            'email.required' => 'البريد الإلكتروني مطلوب.',
+            'email.email' => 'يجب أن يكون البريد الإلكتروني صالحاً.',
+            'email.exists' => 'البريد الإلكتروني غير مسجل في النظام.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'أخطاء في التحقق من البيانات',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $user = User::where('email', $request->email)->first();
+
+            // Only allow clients to reset password through API
+            if (!$user->isClient()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'غير مصرح لك بإعادة تعيين كلمة المرور من هذا المكان',
+                ], 403);
+            }
+
+            // Create verification code
+            $resetCode = PasswordResetCode::createForEmail($request->email);
+
+            // Send notification
+            $user->notify(new ApiPasswordResetNotification($resetCode->code));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم إرسال رمز التحقق إلى بريدك الإلكتروني',
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'فشل في إرسال رمز التحقق',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Reset password using verification code
+     */
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+            'code' => 'required|string|size:6',
+            'password' => 'required|string|min:8|confirmed',
+        ], [
+            'email.required' => 'البريد الإلكتروني مطلوب.',
+            'email.email' => 'يجب أن يكون البريد الإلكتروني صالحاً.',
+            'email.exists' => 'البريد الإلكتروني غير مسجل في النظام.',
+            'code.required' => 'رمز التحقق مطلوب.',
+            'code.size' => 'رمز التحقق يجب أن يكون 6 أرقام.',
+            'password.required' => 'كلمة المرور مطلوبة.',
+            'password.min' => 'كلمة المرور يجب أن تكون 8 أحرف على الأقل.',
+            'password.confirmed' => 'تأكيد كلمة المرور غير متطابق.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'أخطاء في التحقق من البيانات',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $user = User::where('email', $request->email)->first();
+
+            // Only allow clients to reset password through API
+            if (!$user->isClient()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'غير مصرح لك بإعادة تعيين كلمة المرور من هذا المكان',
+                ], 403);
+            }
+
+            // Find and validate the verification code
+            $resetCode = PasswordResetCode::findValidCode($request->email, $request->code);
+
+            if (!$resetCode) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'رمز التحقق غير صحيح أو منتهي الصلاحية',
+                ], 400);
+            }
+
+            // Update password
+            $user->update([
+                'password' => Hash::make($request->password),
+            ]);
+
+            // Mark code as used
+            $resetCode->markAsUsed();
+
+            // Clean up expired codes
+            PasswordResetCode::cleanupExpired();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تغيير كلمة المرور بنجاح',
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'فشل في تغيير كلمة المرور',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Check password reset system status
+     */
+    public function passwordResetStatus(): JsonResponse
+    {
+        try {
+            $activeCodesCount = PasswordResetCode::where('expires_at', '>', now())
+                ->whereNull('used_at')
+                ->count();
+
+            $expiredCodesCount = PasswordResetCode::where('expires_at', '<=', now())
+                ->count();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'system_status' => 'operational',
+                    'active_codes' => $activeCodesCount,
+                    'expired_codes' => $expiredCodesCount,
+                    'code_expiration_minutes' => 15,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'فشل في التحقق من حالة النظام',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Get the token array structure.
      */
     protected function respondWithToken($token): JsonResponse
@@ -209,3 +369,33 @@ class AuthController extends Controller
         ]);
     }
 }
+  
+
+
+/**
+ * 
+ 
+ - now i went in order checkout i went client cant buy rachma 2 times 
+- i went change order confirmation form in telegram to be like this 
+🎉 تم تأكيد طلبك
+• رقم الطلب: 11
+
+الرشمة 1
+
+• تصميم الزهور عصرية 99 - متجر Oussama Benrabah
+
+الجزء 1 
+تفاصيل الجزء
+الطول العرض عدد الغرز 
+
+ 
+ الجزء 2 
+تفاصيل الجزء
+الطول العرض عدد الغرز
+
+
+......
+after that send files 
+- in rachma create page imrove choose rachma part UX
+
+ */

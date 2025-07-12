@@ -24,12 +24,25 @@ class OrderController extends Controller
             'items.*.rachma_id' => 'required|exists:rachmat,id',
             'payment_method' => 'required|in:ccp,baridi_mob,dahabiya',
             'payment_proof' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ], [
+            'items.required' => 'يجب تحديد الرشمات المراد شراؤها.',
+            'items.array' => 'تنسيق الرشمات غير صحيح.',
+            'items.min' => 'يجب تحديد رشمة واحدة على الأقل.',
+            'items.max' => 'لا يمكن شراء أكثر من 20 رشمة في طلب واحد.',
+            'items.*.rachma_id.required' => 'معرف الرشمة مطلوب.',
+            'items.*.rachma_id.exists' => 'الرشمة المحددة غير موجودة.',
+            'payment_method.required' => 'طريقة الدفع مطلوبة.',
+            'payment_method.in' => 'طريقة الدفع المحددة غير صحيحة.',
+            'payment_proof.required' => 'إثبات الدفع مطلوب.',
+            'payment_proof.image' => 'إثبات الدفع يجب أن يكون صورة.',
+            'payment_proof.mimes' => 'إثبات الدفع يجب أن يكون من نوع: jpeg, png, jpg.',
+            'payment_proof.max' => 'حجم إثبات الدفع يجب أن يكون أقل من 2 ميجابايت.',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation errors',
+                'message' => 'أخطاء في التحقق من البيانات',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -37,12 +50,39 @@ class OrderController extends Controller
         try {
             DB::beginTransaction();
 
+            // Get all rachmat IDs from the request
+            $rachmaIds = collect($request->items)->pluck('rachma_id')->unique()->toArray();
+
+            // Check for duplicate purchases
+            $user = $request->user();
+            $alreadyPurchasedIds = $user->hasPurchasedAnyRachmat($rachmaIds);
+
+            if (!empty($alreadyPurchasedIds)) {
+                // Get the titles of already purchased rachmat for error message
+                $alreadyPurchasedRachmat = Rachma::whereIn('id', $alreadyPurchasedIds)
+                    ->get(['id', 'title_ar', 'title_fr'])
+                    ->map(function ($rachma) {
+                        return $rachma->title_ar ?: $rachma->title_fr ?: "رشمة #{$rachma->id}";
+                    });
+
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'لقد قمت بشراء بعض الرشمات من قبل',
+                    'error_type' => 'duplicate_purchase',
+                    'already_purchased' => [
+                        'rachma_ids' => $alreadyPurchasedIds,
+                        'rachma_titles' => $alreadyPurchasedRachmat->toArray(),
+                        'message' => 'الرشمات التي تملكها بالفعل: ' . $alreadyPurchasedRachmat->join('، ')
+                    ]
+                ], 400);
+            }
+
             // Prepare order items
             $orderItems = [];
             $totalAmount = 0;
 
             // Get all rachmat for the items
-            $rachmaIds = collect($request->items)->pluck('rachma_id');
             $rachmat = Rachma::with('designer')->whereIn('id', $rachmaIds)->get()->keyBy('id');
 
             foreach ($request->items as $item) {
@@ -52,15 +92,16 @@ class OrderController extends Controller
                     DB::rollBack();
                     return response()->json([
                         'success' => false,
-                        'message' => "Rachma with ID {$item['rachma_id']} not found"
+                        'message' => "الرشمة رقم {$item['rachma_id']} غير موجودة"
                     ], 400);
                 }
 
                 if ($rachma->designer->subscription_status !== 'active') {
+                    $rachmaTitle = $rachma->title_ar ?: $rachma->title_fr ?: "رشمة #{$rachma->id}";
                     DB::rollBack();
                     return response()->json([
                         'success' => false,
-                        'message' => "Rachma '{$rachma->title_ar}' is not available"
+                        'message' => "الرشمة '{$rachmaTitle}' غير متاحة حالياً"
                     ], 400);
                 }
 
@@ -95,7 +136,7 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Order created successfully',
+                'message' => 'تم إنشاء الطلب بنجاح',
                 'data' => $order
             ], 201);
 
@@ -103,7 +144,7 @@ class OrderController extends Controller
             DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create order',
+                'message' => 'فشل في إنشاء الطلب',
                 'error' => $e->getMessage()
             ], 500);
         }

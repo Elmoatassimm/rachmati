@@ -28,6 +28,15 @@ use App\Http\Controllers\Api\TelegramController;
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
 
+// Password reset routes (with rate limiting)
+Route::middleware('throttle:5,1')->group(function () {
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+});
+
+// Password reset system status (for monitoring)
+Route::get('/password-reset/status', [AuthController::class, 'passwordResetStatus']);
+
 // Public rachmat browsing
 Route::get('/rachmat', [RachmatController::class, 'index']);
 Route::get('/rachmat/{id}', [RachmatController::class, 'show']);

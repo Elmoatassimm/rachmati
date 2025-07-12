@@ -564,7 +564,7 @@ class OrderController extends Controller
     }
 
     /**
-     * Send notification for status changes (simplified system)
+     * Send notification for status changes (using detailed Arabic format)
      */
     private function sendStatusChangeNotification(Order $order, string $oldStatus, string $newStatus): void
     {
@@ -577,33 +577,51 @@ class OrderController extends Controller
                 'order_items_count' => $order->orderItems->count()
             ]);
 
-            // Prepare order description for both single-item and multi-item orders
-            $orderDescription = $this->getOrderDescription($order);
+            if (!$order->client->telegram_chat_id) {
+                Log::info("Skipping Telegram notification - client has no telegram_chat_id", [
+                    'order_id' => $order->id,
+                    'client_id' => $order->client->id,
+                    'status' => $newStatus
+                ]);
+                return;
+            }
 
-            Log::info("Order description prepared", [
-                'order_id' => $order->id,
-                'description' => $orderDescription
-            ]);
+            // Use TelegramService methods for consistent formatting
+            $sent = false;
+            switch ($newStatus) {
+                case 'completed':
+                    // For completed orders, the file delivery will send the detailed message
+                    // So we just send a simple completion notification here
+                    $message = "🎉 *تم إكمال طلبك*\n\n";
+                    $message .= "• *رقم الطلب:* `{$order->id}`\n";
+                    $message .= "• *المبلغ:* " . number_format((float)$order->amount, 0) . " دج\n\n";
+                    $message .= "سيتم إرسال الملفات الآن 📎\n";
+                    $message .= "شكراً لثقتك بنا! 🌟";
+                    $sent = $this->telegramService->sendNotification($order->client->telegram_chat_id, $message);
+                    break;
 
-            $statusMessages = [
-                'completed' => "🎉 *تم إكمال طلبك / Votre commande est terminée*\n\n{$orderDescription}\nالمبلغ / Montant: " . number_format((float)$order->amount, 0) . " DZD\nيمكنك تحميل الملف الآن / Vous pouvez télécharger le fichier maintenant\nشكراً لثقتك بنا / Merci pour votre confiance",
-                'rejected' => "❌ *تم رفض طلبك / Votre commande a été rejetée*\n\n{$orderDescription}\nالسبب / Raison: {$order->rejection_reason}\nيرجى التواصل مع الإدارة / Veuillez contacter l'administration",
-                'pending' => "🔄 *تم إعادة فتح طلبك / Votre commande a été rouverte*\n\n{$orderDescription}\nالمبلغ / Montant: " . number_format((float)$order->amount, 0) . " DZD\nسيتم مراجعة طلبك مجدداً / Votre commande sera réexaminée",
-            ];
+                case 'rejected':
+                    $sent = $this->telegramService->sendOrderRejection($order, $order->rejection_reason);
+                    break;
 
-            if (isset($statusMessages[$newStatus]) && $order->client->telegram_chat_id) {
-                $this->telegramService->sendNotification(
-                    $order->client->telegram_chat_id,
-                    $statusMessages[$newStatus]
-                );
+                case 'pending':
+                    $message = "🔄 *تم إعادة فتح طلبك*\n\n";
+                    $message .= "• *رقم الطلب:* `{$order->id}`\n";
+                    $message .= "• *المبلغ:* " . number_format((float)$order->amount, 0) . " دج\n\n";
+                    $message .= "سيتم مراجعة طلبك مجدداً\n";
+                    $message .= "شكراً لصبرك! 🌟";
+                    $sent = $this->telegramService->sendNotification($order->client->telegram_chat_id, $message);
+                    break;
+            }
+
+            if ($sent) {
                 Log::info("Status change notification sent", [
                     'order_id' => $order->id,
                     'status' => $newStatus
                 ]);
-            } elseif (isset($statusMessages[$newStatus])) {
-                Log::info("Skipping Telegram notification - client has no telegram_chat_id", [
+            } else {
+                Log::warning("Failed to send status change notification", [
                     'order_id' => $order->id,
-                    'client_id' => $order->client->id,
                     'status' => $newStatus
                 ]);
             }

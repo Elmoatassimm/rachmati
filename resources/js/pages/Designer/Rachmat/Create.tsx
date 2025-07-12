@@ -148,7 +148,7 @@ export default function Create({ categories, partsSuggestions = [] }: Props) {
       suggestion.name_ar.toLowerCase().includes(query.toLowerCase()) ||
       suggestion.name_fr.toLowerCase().includes(query.toLowerCase())
     );
-    
+
     setFilteredSuggestions(prev => ({ ...prev, [partIndex]: filtered }));
   };
 
@@ -164,12 +164,12 @@ export default function Create({ categories, partsSuggestions = [] }: Props) {
   const selectSuggestion = (partIndex: number, suggestion: PartsSuggestion) => {
     // Update both fields simultaneously
     const newParts = parts.map((part, i) =>
-      i === partIndex 
+      i === partIndex
         ? { ...part, name_ar: suggestion.name_ar, name_fr: suggestion.name_fr }
         : part
     );
     setParts(newParts);
-    
+
     // Hide suggestions
     setShowSuggestions(prev => ({ ...prev, [partIndex]: false }));
     setFilteredSuggestions(prev => ({ ...prev, [partIndex]: [] }));
@@ -299,19 +299,17 @@ export default function Create({ categories, partsSuggestions = [] }: Props) {
       <div className="flex items-center space-x-4 space-x-reverse">
         {[1, 2, 3].map((step) => (
           <div key={step} className="flex items-center">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${
-              step === currentStep 
-                ? 'bg-primary text-primary-foreground shadow-lg' 
-                : step < currentStep 
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${step === currentStep
+                ? 'bg-primary text-primary-foreground shadow-lg'
+                : step < currentStep
                   ? 'bg-green-500 text-white'
                   : 'bg-muted text-muted-foreground'
-            }`}>
+              }`}>
               {step < currentStep ? '✓' : step}
             </div>
             {step < 3 && (
-              <div className={`w-16 h-0.5 mx-2 transition-colors ${
-                step < currentStep ? 'bg-green-500' : 'bg-muted'
-              }`} />
+              <div className={`w-16 h-0.5 mx-2 transition-colors ${step < currentStep ? 'bg-green-500' : 'bg-muted'
+                }`} />
             )}
           </div>
         ))}
@@ -400,7 +398,7 @@ export default function Create({ categories, partsSuggestions = [] }: Props) {
                       />
                       {errors.title_ar && <p className="text-sm text-destructive mt-1">{errors.title_ar}</p>}
                     </div>
-                    
+
                     <div className="md:col-span-2 space-y-2">
                       <Label htmlFor="title_fr" className="font-semibold">عنوان الرشمة (فرنسي) *</Label>
                       <Input
@@ -440,7 +438,7 @@ export default function Create({ categories, partsSuggestions = [] }: Props) {
                     </div>
                     {errors.categories && <p className="text-sm text-destructive mt-1">{errors.categories}</p>}
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="color_numbers" className="font-semibold">عدد الألوان *</Label>
@@ -561,144 +559,144 @@ export default function Create({ categories, partsSuggestions = [] }: Props) {
                                 setShowSuggestions(prev => ({ ...prev, [index]: false }));
                               }, 200);
                             }}
-                                                         placeholder="اكتب اسم الجزء أو اختر من الاقتراحات..."
-                                                                                                                                                                                                                                       className="h-22"
+                            placeholder="اكتب اسم الجزء أو اختر من الاقتراحات..."
+                            className="h-22"
                           />
                           <ChevronDown className="absolute left-3 top-9 h-4 w-4 text-muted-foreground" />
-                          
-                                                     {showSuggestions[index] && (
-                             <div className="absolute z-10 w-full mt-1 bg-card border rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                               {filteredSuggestions[index]?.length > 0 ? (
-                                 filteredSuggestions[index].map((suggestion) => (
-                                   <button
-                                     key={suggestion.id}
-                                     type="button"
-                                     onClick={() => selectSuggestion(index, suggestion)}
-                                     className="w-full px-4 py-2 text-right hover:bg-muted/50 flex items-center justify-between group transition-colors"
-                                   >
-                                     <span className="text-sm text-muted-foreground group-hover:text-foreground">
-                                       {suggestion.name_fr}
-                                     </span>
-                                     <span className="text-sm font-medium">
-                                       {suggestion.name_ar}
-                                     </span>
-                                   </button>
-                                 ))
-                               ) : part.name_ar.length > 0 ? (
-                                 <div className="px-4 py-3 text-sm text-muted-foreground text-center">
-                                   <p>لا توجد اقتراحات مطابقة</p>
-                                   <p className="text-xs mt-1">يمكنك إدخال اسم مخصص</p>
-                                 </div>
-                               ) : (
-                                 suggestions.slice(0, 5).map((suggestion) => (
-                                   <button
-                                     key={suggestion.id}
-                                     type="button"
-                                     onClick={() => selectSuggestion(index, suggestion)}
-                                     className="w-full px-4 py-2 text-right hover:bg-muted/50 flex items-center justify-between group transition-colors"
-                                   >
-                                     <span className="text-sm text-muted-foreground group-hover:text-foreground">
-                                       {suggestion.name_fr}
-                                     </span>
-                                     <span className="text-sm font-medium">
-                                       {suggestion.name_ar}
-                                     </span>
-                                   </button>
-                                 ))
-                               )}
-                             </div>
-                           )}
-                          
-                                                     {!part.name_ar && (
-                             <div className="absolute top-8 left-0 right-0 h-11 bg-transparent flex items-center px-3">
-                               <button
-                                 type="button"
-                                 onClick={() => {
-                                   setFilteredSuggestions(prev => ({ ...prev, [index]: suggestions }));
-                                   setShowSuggestions(prev => ({ ...prev, [index]: true }));
-                                 }}
-                                 className="text-xs text-muted-foreground hover:text-foreground"
-                               >
-                                 اضغط لعرض الاقتراحات
-                               </button>
-                             </div>
-                           )}
-                          
+
+                          {showSuggestions[index] && (
+                            <div className="absolute z-10 w-full mt-1 bg-card border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                              {filteredSuggestions[index]?.length > 0 ? (
+                                filteredSuggestions[index].map((suggestion) => (
+                                  <button
+                                    key={suggestion.id}
+                                    type="button"
+                                    onClick={() => selectSuggestion(index, suggestion)}
+                                    className="w-full px-4 py-2 text-right hover:bg-muted/50 flex items-center justify-between group transition-colors"
+                                  >
+                                    <span className="text-sm text-muted-foreground group-hover:text-foreground">
+                                      {suggestion.name_fr}
+                                    </span>
+                                    <span className="text-sm font-medium">
+                                      {suggestion.name_ar}
+                                    </span>
+                                  </button>
+                                ))
+                              ) : part.name_ar.length > 0 ? (
+                                <div className="px-4 py-3 text-sm text-muted-foreground text-center">
+                                  <p>لا توجد اقتراحات مطابقة</p>
+                                  <p className="text-xs mt-1">يمكنك إدخال اسم مخصص</p>
+                                </div>
+                              ) : (
+                                suggestions.slice(0, 5).map((suggestion) => (
+                                  <button
+                                    key={suggestion.id}
+                                    type="button"
+                                    onClick={() => selectSuggestion(index, suggestion)}
+                                    className="w-full px-4 py-2 text-right hover:bg-muted/50 flex items-center justify-between group transition-colors"
+                                  >
+                                    <span className="text-sm text-muted-foreground group-hover:text-foreground">
+                                      {suggestion.name_fr}
+                                    </span>
+                                    <span className="text-sm font-medium">
+                                      {suggestion.name_ar}
+                                    </span>
+                                  </button>
+                                ))
+                              )}
+                            </div>
+                          )}
+
+                          {!part.name_ar && (
+                            <div className="absolute top-8 left-0 right-0 h-11 bg-transparent flex items-center px-3">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFilteredSuggestions(prev => ({ ...prev, [index]: suggestions }));
+                                  setShowSuggestions(prev => ({ ...prev, [index]: true }));
+                                }}
+                                className="text-xs text-muted-foreground hover:text-foreground"
+                              >
+                                اضغط لعرض الاقتراحات
+                              </button>
+                            </div>
+                          )}
+
                           {errors[`parts.${index}.name_ar` as keyof typeof errors] && (
                             <p className="text-sm text-destructive mt-1">
                               {errors[`parts.${index}.name_ar` as keyof typeof errors]}
                             </p>
                           )}
                         </div>
-                                                 <div className="space-y-2">
-                           <Label htmlFor={`part_name_fr_${index}`} className="text-sm font-semibold">اسم الجزء (فرنسي) *</Label>
-                           <Input
-                             id={`part_name_fr_${index}`}
-                             value={part.name_fr}
-                             onChange={e => updatePart(index, 'name_fr', e.target.value)}
-                             placeholder="Nom de la partie en français"
-                             className="h-11"
-                           />
-                           <p className="text-xs text-muted-foreground">يملأ تلقائياً من الاقتراحات أو أدخله يدوياً</p>
-                           {errors[`parts.${index}.name_fr` as keyof typeof errors] && (
-                             <p className="text-sm text-destructive mt-1">
-                               {errors[`parts.${index}.name_fr` as keyof typeof errors]}
-                             </p>
-                           )}
-                         </div>
-                         <div className="space-y-2">
-                           <Label htmlFor={`part_stitches_${index}`} className="text-sm font-semibold">عدد الغرز *</Label>
-                           <Input
-                             id={`part_stitches_${index}`}
-                             type="number"
-                             value={part.stitches}
-                             onChange={e => updatePart(index, 'stitches', e.target.value)}
-                             placeholder="1000"
-                             min="1"
-                             className="h-11"
-                           />
-                           {errors[`parts.${index}.stitches` as keyof typeof errors] && (
-                             <p className="text-sm text-destructive mt-1">
-                               {errors[`parts.${index}.stitches` as keyof typeof errors]}
-                             </p>
-                           )}
-                         </div>
-                         <div className="space-y-2">
-                           <Label htmlFor={`part_length_${index}`} className="text-sm font-semibold">الطول (سم) *</Label>
-                           <Input
-                             id={`part_length_${index}`}
-                             type="number"
-                             step="0.1"
-                             value={part.length}
-                             onChange={e => updatePart(index, 'length', e.target.value)}
-                             placeholder="10.5"
-                             min="0.1"
-                             className="h-11"
-                           />
-                           {errors[`parts.${index}.length` as keyof typeof errors] && (
-                             <p className="text-sm text-destructive mt-1">
-                               {errors[`parts.${index}.length` as keyof typeof errors]}
-                             </p>
-                           )}
-                         </div>
-                         <div className="space-y-2">
-                           <Label htmlFor={`part_height_${index}`} className="text-sm font-semibold">الارتفاع (سم) *</Label>
-                           <Input
-                             id={`part_height_${index}`}
-                             type="number"
-                             step="0.1"
-                             value={part.height}
-                             onChange={e => updatePart(index, 'height', e.target.value)}
-                             placeholder="8.2"
-                             min="0.1"
-                             className="h-11"
-                           />
-                           {errors[`parts.${index}.height` as keyof typeof errors] && (
-                             <p className="text-sm text-destructive mt-1">
-                               {errors[`parts.${index}.height` as keyof typeof errors]}
-                             </p>
-                           )}
-                         </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`part_name_fr_${index}`} className="text-sm font-semibold">اسم الجزء (فرنسي) *</Label>
+                          <Input
+                            id={`part_name_fr_${index}`}
+                            value={part.name_fr}
+                            onChange={e => updatePart(index, 'name_fr', e.target.value)}
+                            placeholder="Nom de la partie en français"
+                            className="h-11"
+                          />
+                          <p className="text-xs text-muted-foreground">يملأ تلقائياً من الاقتراحات أو أدخله يدوياً</p>
+                          {errors[`parts.${index}.name_fr` as keyof typeof errors] && (
+                            <p className="text-sm text-destructive mt-1">
+                              {errors[`parts.${index}.name_fr` as keyof typeof errors]}
+                            </p>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`part_stitches_${index}`} className="text-sm font-semibold">عدد الغرز *</Label>
+                          <Input
+                            id={`part_stitches_${index}`}
+                            type="number"
+                            value={part.stitches}
+                            onChange={e => updatePart(index, 'stitches', e.target.value)}
+                            placeholder="1000"
+                            min="1"
+                            className="h-11"
+                          />
+                          {errors[`parts.${index}.stitches` as keyof typeof errors] && (
+                            <p className="text-sm text-destructive mt-1">
+                              {errors[`parts.${index}.stitches` as keyof typeof errors]}
+                            </p>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`part_length_${index}`} className="text-sm font-semibold">الطول (سم) *</Label>
+                          <Input
+                            id={`part_length_${index}`}
+                            type="number"
+                            step="0.1"
+                            value={part.length}
+                            onChange={e => updatePart(index, 'length', e.target.value)}
+                            placeholder="10.5"
+                            min="0.1"
+                            className="h-11"
+                          />
+                          {errors[`parts.${index}.length` as keyof typeof errors] && (
+                            <p className="text-sm text-destructive mt-1">
+                              {errors[`parts.${index}.length` as keyof typeof errors]}
+                            </p>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`part_height_${index}`} className="text-sm font-semibold">الارتفاع (سم) *</Label>
+                          <Input
+                            id={`part_height_${index}`}
+                            type="number"
+                            step="0.1"
+                            value={part.height}
+                            onChange={e => updatePart(index, 'height', e.target.value)}
+                            placeholder="8.2"
+                            min="0.1"
+                            className="h-11"
+                          />
+                          {errors[`parts.${index}.height` as keyof typeof errors] && (
+                            <p className="text-sm text-destructive mt-1">
+                              {errors[`parts.${index}.height` as keyof typeof errors]}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}

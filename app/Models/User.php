@@ -155,4 +155,88 @@ class User extends Authenticatable implements JWTSubject , MustVerifyEmail
     {
         $this->notify(new VerifyEmailNotification);
     }
+
+    /**
+     * Check if user has purchased a specific rachma
+     */
+    public function hasPurchasedRachma(int $rachmaId): bool
+    {
+        return $this->orders()
+            ->where('status', 'completed')
+            ->where(function ($query) use ($rachmaId) {
+                // Legacy single-item orders
+                $query->where('rachma_id', $rachmaId)
+                    // OR new multi-item orders
+                    ->orWhereHas('orderItems', function ($subQuery) use ($rachmaId) {
+                        $subQuery->where('rachma_id', $rachmaId);
+                    });
+            })
+            ->exists();
+    }
+
+    /**
+     * Check if user has purchased any of the given rachmat IDs
+     */
+    public function hasPurchasedAnyRachmat(array $rachmaIds): array
+    {
+        if (empty($rachmaIds)) {
+            return [];
+        }
+
+        // Get all completed orders for this user
+        $purchasedRachmaIds = collect();
+
+        // Check legacy single-item orders
+        $legacyPurchases = $this->orders()
+            ->where('status', 'completed')
+            ->whereIn('rachma_id', $rachmaIds)
+            ->whereNotNull('rachma_id')
+            ->pluck('rachma_id');
+
+        $purchasedRachmaIds = $purchasedRachmaIds->merge($legacyPurchases);
+
+        // Check new multi-item orders
+        $multiItemPurchases = $this->orders()
+            ->where('status', 'completed')
+            ->with(['orderItems' => function ($query) use ($rachmaIds) {
+                $query->whereIn('rachma_id', $rachmaIds);
+            }])
+            ->get()
+            ->flatMap(function ($order) {
+                return $order->orderItems->pluck('rachma_id');
+            });
+
+        $purchasedRachmaIds = $purchasedRachmaIds->merge($multiItemPurchases);
+
+        return $purchasedRachmaIds->unique()->values()->toArray();
+    }
+
+    /**
+     * Get all purchased rachmat IDs for this user
+     */
+    public function getPurchasedRachmatIds(): array
+    {
+        $purchasedRachmaIds = collect();
+
+        // Get from legacy single-item orders
+        $legacyPurchases = $this->orders()
+            ->where('status', 'completed')
+            ->whereNotNull('rachma_id')
+            ->pluck('rachma_id');
+
+        $purchasedRachmaIds = $purchasedRachmaIds->merge($legacyPurchases);
+
+        // Get from new multi-item orders
+        $multiItemPurchases = $this->orders()
+            ->where('status', 'completed')
+            ->with('orderItems')
+            ->get()
+            ->flatMap(function ($order) {
+                return $order->orderItems->pluck('rachma_id');
+            });
+
+        $purchasedRachmaIds = $purchasedRachmaIds->merge($multiItemPurchases);
+
+        return $purchasedRachmaIds->unique()->values()->toArray();
+    }
 }
